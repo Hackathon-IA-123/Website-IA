@@ -1,0 +1,39 @@
+"use client";
+
+import Composer from "./Composer";
+
+const SUGGESTIONS = [
+  "✦ Résumer un document",
+  "Idées de week-end",
+  "Coder une fonction",
+];
+
+interface HomeProps {
+  onSend: (text: string) => void;
+}
+
+export default function Home({ onSend }: HomeProps) {
+  return (
+    <div className="flex h-full flex-col items-center justify-center px-6">
+      <h1 className="text-center text-[clamp(34px,5vw,56px)] font-light leading-[1.1] tracking-[-0.015em] text-[#f1f1f1]">
+        Bonsoir Thomas, on <span className="text-accent">explore</span> ?
+      </h1>
+
+      <div className="mt-[46px] w-full max-w-[860px]">
+        <Composer onSend={onSend} variant="home" placeholder="Demander à Jean" />
+      </div>
+
+      <div className="mt-[30px] flex flex-wrap justify-center gap-3">
+        {SUGGESTIONS.map((s) => (
+          <button
+            key={s}
+            onClick={() => onSend(s.replace(/^✦\s*/, ""))}
+            className="rounded-[30px] border border-white/10 bg-[rgba(20,20,21,0.72)] px-[18px] py-[11px] text-[15px] text-[#c8c8c8] shadow-[0_8px_30px_rgba(0,0,0,0.35)] backdrop-blur-[14px] transition-colors hover:bg-[rgba(36,36,38,0.85)]"
+          >
+            {s}
+          </button>
+        ))}
+      </div>
+    </div>
+  );
+}

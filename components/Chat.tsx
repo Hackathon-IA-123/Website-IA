@@ -1,25 +1,24 @@
 "use client";
 
-import { useState } from "react";
 import type { Message } from "@/app/types";
-import Sidebar from "./Sidebar";
-import ChatMessages from "./ChatMessages";
-import ChatInput from "./ChatInput";
-
-const SUGGESTIONS = [
-  "Explique-moi un concept simplement",
-  "Aide-moi à rédiger un email",
-  "Donne-moi des idées de projet",
-  "Résume un texte long",
-];
+import { useState } from "react";
+import ChatView from "./ChatView";
+import DotField from "./DotField";
+import Home from "./Home";
+import { PenIcon } from "./icons";
+import Rail from "./Rail";
 
 export default function Chat() {
   const [messages, setMessages] = useState<Message[]>([]);
   const [loading, setLoading] = useState(false);
+  const [title, setTitle] = useState("Nouveau fil");
+
+  const isEmpty = messages.length === 0;
 
   function newChat() {
     setMessages([]);
     setLoading(false);
+    setTitle("Nouveau fil");
   }
 
   async function sendMessage(text: string) {
@@ -31,6 +30,9 @@ export default function Chat() {
     const history = [...messages, userMessage];
     setMessages(history);
     setLoading(true);
+    if (messages.length === 0) {
+      setTitle(text.length > 38 ? text.slice(0, 38) + "…" : text);
+    }
 
     try {
       const res = await fetch("/api/chat", {
@@ -38,7 +40,6 @@ export default function Chat() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ messages: history }),
       });
-
       if (!res.body) throw new Error("Pas de réponse");
 
       const assistantId = crypto.randomUUID();
@@ -49,15 +50,14 @@ export default function Chat() {
 
       const reader = res.body.getReader();
       const decoder = new TextDecoder();
-
       while (true) {
         const { done, value } = await reader.read();
         if (done) break;
         const chunk = decoder.decode(value, { stream: true });
         setMessages((prev) =>
           prev.map((m) =>
-            m.id === assistantId ? { ...m, content: m.content + chunk } : m
-          )
+            m.id === assistantId ? { ...m, content: m.content + chunk } : m,
+          ),
         );
       }
     } catch {
@@ -74,43 +74,38 @@ export default function Chat() {
     }
   }
 
-  const isEmpty = messages.length === 0;
+  // Foyer lumineux : centre pour l'accueil (2a), bas pour la conversation (2c).
+  const focus = isEmpty
+    ? { x: 0.5, y: 0.6, rad: 0.4, str: 1 }
+    : { x: 0.5, y: 1.14, rad: 0.55, str: 0.7 };
 
   return (
-    <div className="flex h-screen w-screen overflow-hidden">
-      <Sidebar onNewChat={newChat} />
+    <div className="relative flex h-screen w-screen overflow-hidden">
+      <DotField focus={focus} />
 
-      <main className="flex h-full flex-1 flex-col">
-        <header className="flex items-center px-6 py-4 text-xl font-medium text-muted">
-          Website-IA
-        </header>
+      {/* Édition (haut droite) - accueil uniquement */}
+      {isEmpty && (
+        <button
+          aria-label="Composer"
+          className="absolute right-[30px] top-[30px] z-20 flex h-10 w-10 items-center justify-center rounded-full border-[1.4px] border-dashed border-white/[0.28] text-[#cfcfcf] hover:text-white"
+        >
+          <PenIcon size={20} />
+        </button>
+      )}
 
+      <Rail onNewChat={newChat} />
+
+      <main className="relative z-10 min-w-0 flex-1">
         {isEmpty ? (
-          <div className="flex flex-1 flex-col items-center justify-center px-4">
-            <h1 className="brand-gradient text-center text-4xl font-semibold sm:text-5xl">
-              Bonjour
-            </h1>
-            <p className="mt-2 text-center text-2xl text-muted sm:text-3xl">
-              Comment puis-je t&apos;aider aujourd&apos;hui&nbsp;?
-            </p>
-
-            <div className="mt-10 grid w-full max-w-2xl grid-cols-1 gap-3 sm:grid-cols-2">
-              {SUGGESTIONS.map((s) => (
-                <button
-                  key={s}
-                  onClick={() => sendMessage(s)}
-                  className="rounded-xl bg-surface p-4 text-left text-sm text-foreground transition-colors hover:bg-surface-hover"
-                >
-                  {s}
-                </button>
-              ))}
-            </div>
-          </div>
+          <Home onSend={sendMessage} />
         ) : (
-          <ChatMessages messages={messages} loading={loading} />
+          <ChatView
+            title={title}
+            messages={messages}
+            loading={loading}
+            onSend={sendMessage}
+          />
         )}
-
-        <ChatInput onSend={sendMessage} disabled={loading} />
       </main>
     </div>
   );
