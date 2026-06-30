@@ -1,11 +1,95 @@
 @import "tailwindcss";
 
-:root {
+/* ===== Thème sombre (par défaut) ===== */
+:root,
+html[data-theme="dark"],
+html.dark,
+body[data-theme="dark"],
+body.dark {
+  color-scheme: dark;
+
   --background: #060606;
   --foreground: #f1f1f1;
   --accent: #ffc400;
   --accent-ink: #1a1500;
   --muted: #8a8a8a;
+
+  /* Tokens sémantiques (textes, surfaces, bordures) */
+  --ink-strong: #ededed;
+  --ink: #cfcfcf;
+  --ink-dim: #9c9c9c;
+  --hover-text: #ffffff;
+
+  --surface: rgba(255, 255, 255, 0.07);
+  --surface-hover: rgba(255, 255, 255, 0.12);
+  --surface-soft: rgba(255, 255, 255, 0.06);
+  --border-soft: rgba(255, 255, 255, 0.08);
+  --border-dashed: rgba(255, 255, 255, 0.28);
+
+  --composer-bg-home: rgba(20, 20, 21, 0.9);
+  --composer-bg-chat: rgba(22, 22, 23, 0.9);
+  --chip-bg: rgba(20, 20, 21, 0.72);
+  --chip-hover: rgba(36, 36, 38, 0.85);
+  --menu-bg: rgba(24, 24, 26, 0.96);
+  --top-fade: #060606;
+
+  --scrollbar: rgba(255, 255, 255, 0.12);
+  --scrollbar-hover: rgba(255, 255, 255, 0.22);
+
+  --composer-shadow: rgba(0, 0, 0, 0.45);
+  --composer-shadow-strong: rgba(0, 0, 0, 0.5);
+  --composer-glow: rgba(255, 196, 0, 0.08);
+
+  /* Couleurs du champ de points (canvas) */
+  --dot-bg: #060606;
+  --dot-spark: 255, 255, 255;
+  --dot-vivid: 255, 196, 0;
+  --dot-ambient: 255, 196, 0;
+}
+
+/* ===== Thème clair ===== */
+html[data-theme="light"],
+html.light,
+body[data-theme="light"],
+body.light {
+  color-scheme: light;
+
+  --background: #f3f3f5;
+  --foreground: #1a1a1d;
+  --accent: #c98a00;
+  --accent-ink: #fff8e6;
+  --muted: #6b6b72;
+
+  --ink-strong: #1f1f23;
+  --ink: #3c3c44;
+  --ink-dim: #6b6b72;
+  --hover-text: #000000;
+
+  --surface: rgba(0, 0, 0, 0.05);
+  --surface-hover: rgba(0, 0, 0, 0.09);
+  --surface-soft: rgba(0, 0, 0, 0.045);
+  --border-soft: rgba(0, 0, 0, 0.1);
+  --border-dashed: rgba(0, 0, 0, 0.28);
+
+  --composer-bg-home: rgba(255, 255, 255, 0.92);
+  --composer-bg-chat: rgba(255, 255, 255, 0.92);
+  --chip-bg: rgba(255, 255, 255, 0.85);
+  --chip-hover: rgba(0, 0, 0, 0.06);
+  --menu-bg: rgba(250, 250, 252, 0.98);
+  --top-fade: #f3f3f5;
+
+  --scrollbar: rgba(0, 0, 0, 0.18);
+  --scrollbar-hover: rgba(0, 0, 0, 0.32);
+
+  --composer-shadow: rgba(0, 0, 0, 0.12);
+  --composer-shadow-strong: rgba(0, 0, 0, 0.16);
+  --composer-glow: rgba(201, 138, 0, 0.12);
+
+  /* Points foncés pour rester visibles sur fond clair */
+  --dot-bg: #f3f3f5;
+  --dot-spark: 40, 40, 48;
+  --dot-vivid: 196, 138, 0;
+  --dot-ambient: 70, 70, 82;
 }
 
 @theme inline {
@@ -29,6 +113,9 @@ body {
   font-family: var(--font-sans);
   -webkit-font-smoothing: antialiased;
   overflow: hidden;
+  transition:
+    background-color 0.3s ease,
+    color 0.3s ease;
 }
 
 /* Scrollbar discrète */
@@ -36,11 +123,11 @@ body {
   width: 10px;
 }
 *::-webkit-scrollbar-thumb {
-  background: rgba(255, 255, 255, 0.12);
+  background: var(--scrollbar);
   border-radius: 9999px;
 }
 *::-webkit-scrollbar-thumb:hover {
-  background: rgba(255, 255, 255, 0.22);
+  background: var(--scrollbar-hover);
 }
 
 /* Indicateur « en train d'écrire » */
@@ -90,13 +177,13 @@ body {
   0%,
   100% {
     box-shadow:
-      0 14px 50px rgba(0, 0, 0, 0.45),
+      0 14px 50px var(--composer-shadow),
       0 0 0 rgba(255, 196, 0, 0);
   }
   50% {
     box-shadow:
-      0 16px 54px rgba(0, 0, 0, 0.5),
-      0 0 40px rgba(255, 196, 0, 0.08);
+      0 16px 54px var(--composer-shadow-strong),
+      0 0 40px var(--composer-glow);
   }
 }
 

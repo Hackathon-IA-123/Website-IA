@@ -179,14 +179,19 @@ export function PanelLeftIcon({ size }: P) {
   );
 }
 
-/** Icône « chat temporaire » : bulle de discussion en pointillés. */
-export function TemporaryChatIcon({ size }: P) {
+export function SunIcon({ size }: P) {
   return (
     <svg {...base(size)}>
-      <path
-        d="M21 11.5a8.5 8.5 0 0 1-12.6 7.4L3.5 20.5l1.6-4.9A8.5 8.5 0 1 1 21 11.5Z"
-        strokeDasharray="2.6 2.8"
-      />
+      <circle cx="12" cy="12" r="4.2" />
+      <path d="M12 2.5v2.6M12 18.9v2.6M2.5 12h2.6M18.9 12h2.6M5.1 5.1l1.8 1.8M17.1 17.1l1.8 1.8M18.9 5.1l-1.8 1.8M6.9 17.1l-1.8 1.8" />
+    </svg>
+  );
+}
+
+export function MoonIcon({ size }: P) {
+  return (
+    <svg {...base(size)}>
+      <path d="M20 13.5A8 8 0 1 1 10.5 4a6.4 6.4 0 0 0 9.5 9.5z" />
     </svg>
   );
 }

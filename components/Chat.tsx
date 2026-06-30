@@ -7,13 +7,14 @@ import DotField from "./DotField";
 import Home from "./Home";
 import { TemporaryChatIcon } from "./icons";
 import Rail from "./Rail";
+import { useTheme } from "./ThemeProvider";
 
 export default function Chat() {
   const [messages, setMessages] = useState<Message[]>([]);
   const [loading, setLoading] = useState(false);
   const [title, setTitle] = useState("Nouveau fil");
   const [model, setModel] = useState<ModelId>("medical");
-  const [temporary, setTemporary] = useState(false);
+  const { theme } = useTheme();
 
   const isEmpty = messages.length === 0;
 
@@ -107,22 +108,13 @@ export default function Chat() {
 
   return (
     <div className="relative flex h-screen w-screen overflow-hidden">
-      <DotField focus={focus} />
+      <DotField focus={focus} theme={theme} />
 
       {/* Chat temporaire (haut droite) - accueil uniquement */}
       {isEmpty && (
         <button
-          onClick={toggleTemporary}
-          aria-label="Chat temporaire"
-          aria-pressed={temporary}
-          title={
-            temporary ? "Désactiver le chat temporaire" : "Chat temporaire"
-          }
-          className={`absolute right-[30px] top-[30px] z-20 flex h-10 w-10 items-center justify-center rounded-full transition-colors ${
-            temporary
-              ? "bg-accent/15 text-accent ring-1 ring-accent/40"
-              : "text-[#cfcfcf] hover:bg-white/[0.06] hover:text-white"
-          }`}
+          aria-label="Composer"
+          className="absolute right-[30px] top-[30px] z-20 flex h-10 w-10 items-center justify-center rounded-full border-[1.4px] border-dashed border-(--border-dashed) text-(--ink) hover:text-(--hover-text)"
         >
           <TemporaryChatIcon size={20} />
         </button>

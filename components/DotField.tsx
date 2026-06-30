@@ -14,7 +14,31 @@ interface Focus {
 
 interface DotFieldProps {
   focus: Focus;
+  theme: "dark" | "light";
 }
+
+interface Palette {
+  bg: string;
+  spark: string; // "r,g,b"
+  vivid: string;
+  ambient: string;
+}
+
+const PALETTES: Record<"dark" | "light", Palette> = {
+  dark: {
+    bg: "#060606",
+    spark: "255,255,255",
+    vivid: "255,196,0",
+    ambient: "255,196,0",
+  },
+  // Points foncés sur fond clair pour rester visibles.
+  light: {
+    bg: "#f3f3f5",
+    spark: "40,40,48",
+    vivid: "196,138,0",
+    ambient: "70,70,82",
+  },
+};
 
 type Dot = {
   x: number;
@@ -33,10 +57,12 @@ type Dot = {
  * foyer lumineux. Les couleurs et positions de base sont figées par point pour
  * éviter tout clignotement brutal — seule la luminosité oscille doucement.
  */
-export default function DotField({ focus }: DotFieldProps) {
+export default function DotField({ focus, theme }: DotFieldProps) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const focusRef = useRef(focus);
   focusRef.current = focus;
+  const paletteRef = useRef<Palette>(PALETTES[theme]);
+  paletteRef.current = PALETTES[theme];
 
   useEffect(() => {
     const canvas = canvasRef.current;
@@ -88,6 +114,7 @@ export default function DotField({ focus }: DotFieldProps) {
     function render(t: number) {
       const context = ctx!;
       const f = focusRef.current;
+      const pal = paletteRef.current;
       const introDuration = 3.2; // animation de départ uniquement
       const introProgress = Math.min(t / introDuration, 1);
       const centerX = W * 0.5;
@@ -95,7 +122,7 @@ export default function DotField({ focus }: DotFieldProps) {
       const maxCenterDist = Math.hypot(centerX, centerY);
       const waveFront = introProgress * 1.18;
 
-      context.fillStyle = "#060606";
+      context.fillStyle = pal.bg;
       context.fillRect(0, 0, W, H);
 
       // Dérive plus visible du foyer + légère respiration du rayon.
@@ -137,13 +164,13 @@ export default function DotField({ focus }: DotFieldProps) {
         let col: string;
         let alpha: number;
         if (dot.kind === 0) {
-          col = "255,255,255";
+          col = pal.spark;
           alpha = 0.1 + prox * 0.62 + introRing * 0.2;
         } else if (dot.kind === 1) {
-          col = "255,196,0";
+          col = pal.vivid;
           alpha = 0.06 + prox * 0.8 + introRing * 0.26;
         } else {
-          col = "255,196,0";
+          col = pal.ambient;
           alpha = 0.03 + prox * 0.12 + introRing * 0.08;
         }
         alpha = Math.min(alpha * twinkle, 0.95);
