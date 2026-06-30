@@ -12,6 +12,7 @@ import ChatView from "./ChatView";
 import DotField from "./DotField";
 import Home from "./Home";
 import Rail from "./Rail";
+import SearchModal from "./SearchModal";
 import { useTheme } from "./ThemeProvider";
 import { TemporaryChatIcon } from "./icons";
 
@@ -194,6 +195,20 @@ export default function Chat({
     await streamReply(history, true);
   }
 
+  const [searchOpen, setSearchOpen] = useState(false);
+
+  // Raccourci ⌘/Ctrl+K pour ouvrir/fermer la recherche.
+  useEffect(() => {
+    function onKey(e: KeyboardEvent) {
+      if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === "k") {
+        e.preventDefault();
+        setSearchOpen((v) => !v);
+      }
+    }
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, []);
+
   // Foyer lumineux : centre pour l'accueil (2a), bas pour la conversation (2c).
   const focus = isEmpty
     ? { x: 0.5, y: 0.6, rad: 0.4, str: 1 }
@@ -232,6 +247,7 @@ export default function Chat({
         activeId={conversationId}
         onNewChat={newChat}
         onSelect={loadConversation}
+        onOpenSearch={() => setSearchOpen(true)}
       />
 
       <main className="animate-ui-fade-up relative z-10 min-w-0 flex-1">
@@ -240,6 +256,8 @@ export default function Chat({
             onSend={sendMessage}
             model={model}
             onModelChange={setModel}
+            temporary={temporary}
+            name={user.name}
           />
         ) : (
           <ChatView
@@ -255,6 +273,13 @@ export default function Chat({
           />
         )}
       </main>
+
+      <SearchModal
+        open={searchOpen}
+        onClose={() => setSearchOpen(false)}
+        conversations={conversations}
+        onSelect={loadConversation}
+      />
     </div>
   );
 }
