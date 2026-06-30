@@ -2,7 +2,7 @@ import type { Message } from "@/app/types";
 
 export async function POST(req: Request) {
   const { messages } = (await req.json()) as { messages: Message[] };
-
+  console.log("API CHAT CALLED");
   const res = await fetch(`${process.env.OLLAMA_BASE_URL}/api/chat`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
@@ -25,5 +25,4 @@ export async function POST(req: Request) {
       "Cache-Control": "no-cache",
     },
   });
-    console.log("API CHAT CALLED");
 }
