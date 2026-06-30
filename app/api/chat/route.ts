@@ -1,30 +1,49 @@
+// app/api/chat/route.ts
 import type { Message } from "@/app/types";
 
-/**
- * Mock de l'endpoint de chat.
- *
- * Pour l'instant on renvoie une réponse factice en streaming (SSE-like via
- * ReadableStream) afin de pouvoir tester l'UI sans modèle réel.
- *
- * Plus tard : remplacer le contenu de cette fonction par un appel au modèle IA
- * (Anthropic, OpenAI, etc.) et streamer ses tokens à la place.
- */
+const BACKEND = process.env.LLM_BACKEND ;
+const OLLAMA_URL = process.env.OLLAMA_URL;
+const OLLAMA_MODEL = process.env.OLLAMA_MODEL ;
+
+
 export async function POST(req: Request) {
   const { messages } = (await req.json()) as { messages: Message[] };
-  const lastUser = [...messages].reverse().find((m) => m.role === "user");
 
-  const reply = `Ceci est une réponse de démonstration. La connexion au modèle IA sera branchée ici.\n\nTu as écrit : « ${lastUser?.content ?? ""} »`;
+  return streamOllama(messages);
+}
 
-  const encoder = new TextEncoder();
+// ── Ollama ────────────────────────────────────────────────
+async function streamOllama(messages: Message[]) {
+  const res = await fetch(`${OLLAMA_URL}/api/chat`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({
+      model: OLLAMA_MODEL,
+      messages,
+      stream: true,
+    }),
+  });
+
+  if (!res.ok || !res.body)
+    return new Response("Ollama error: " + res.status, { status: 502 });
+
+  // Ollama sends newline-delimited JSON — extract just the token text
+  const reader = res.body.getReader();
+  const decoder = new TextDecoder();
+
   const stream = new ReadableStream({
-    async start(controller) {
-      // Streame mot par mot pour simuler une génération token par token.
-      const words = reply.split(" ");
-      for (const word of words) {
-        controller.enqueue(encoder.encode(word + " "));
-        await new Promise((r) => setTimeout(r, 30));
+    async pull(controller) {
+      const { done, value } = await reader.read();
+      if (done) return controller.close();
+
+      const lines = decoder.decode(value).split("\n").filter(Boolean);
+      for (const line of lines) {
+        try {
+          const json = JSON.parse(line);
+          const token = json.message?.content ?? "";
+          if (token) controller.enqueue(new TextEncoder().encode(token));
+        } catch {}
       }
-      controller.close();
     },
   });
 
@@ -35,3 +54,4 @@ export async function POST(req: Request) {
     },
   });
 }
+
