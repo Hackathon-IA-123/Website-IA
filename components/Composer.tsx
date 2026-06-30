@@ -65,12 +65,12 @@ export default function Composer({
   const currentModel = MODELS.find((m) => m.id === model) ?? MODELS[0];
 
   const minH = variant === "home" ? "min-h-[66px]" : "min-h-[62px]";
-  const bg = variant === "home" ? "bg-[rgba(20,20,21,0.66)]" : "bg-[rgba(22,22,23,0.82)]";
+  const bg = variant === "home" ? "bg-[rgba(20,20,21,0.90)]" : "bg-[rgba(22,22,23,0.90)]";
   const textSize = variant === "home" ? "text-[19px]" : "text-[18px]";
 
   return (
     <div
-      className={`flex w-full items-center gap-[14px] rounded-[33px] ${bg} ${minH} border border-white/[0.08] py-2 pl-[22px] pr-[14px] shadow-[0_14px_50px_rgba(0,0,0,0.45)] backdrop-blur-[14px]`}
+      className={`animate-ui-soft-float animate-ui-soft-glow flex w-full items-center gap-[14px] rounded-[33px] ${bg} ${minH} border border-white/8 py-2 pl-[22px] pr-[14px] backdrop-blur-[14px]`}
     >
       <span className="text-[#cfcfcf]">
         <PlusIcon size={26} />
@@ -92,7 +92,7 @@ export default function Composer({
           onClick={() => setMenuOpen((v) => !v)}
           aria-haspopup="listbox"
           aria-expanded={menuOpen}
-          className="flex items-center gap-[5px] rounded-[14px] px-[10px] py-2 text-[17px] font-medium text-[#dcdcdc] transition-colors hover:bg-white/[0.06]"
+          className="flex items-center gap-[5px] rounded-[14px] px-[10px] py-2 text-[17px] font-medium text-[#dcdcdc] transition-colors hover:bg-white/6"
         >
           {currentModel.label}
           <span

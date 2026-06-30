@@ -112,7 +112,7 @@ export default function Chat() {
 
       <Rail onNewChat={newChat} />
 
-      <main className="relative z-10 min-w-0 flex-1">
+      <main className="animate-ui-fade-up relative z-10 min-w-0 flex-1">
         {isEmpty ? (
           <Home onSend={sendMessage} model={model} onModelChange={setModel} />
         ) : (

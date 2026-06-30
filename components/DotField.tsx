@@ -78,7 +78,7 @@ export default function DotField({ focus }: DotFieldProps) {
             y: y + (Math.random() - 0.5) * 1.6,
             kind,
             phase: Math.random() * Math.PI * 2,
-            tw: 0.35 + Math.random() * 0.95, // période ~5 à 18 s
+            tw: 0.45 + Math.random() * 1.2, // période ~4 à 14 s
             dphase: Math.random() * Math.PI * 2,
           });
         }
@@ -88,43 +88,66 @@ export default function DotField({ focus }: DotFieldProps) {
     function render(t: number) {
       const context = ctx!;
       const f = focusRef.current;
+      const introDuration = 3.2; // animation de départ uniquement
+      const introProgress = Math.min(t / introDuration, 1);
+      const centerX = W * 0.5;
+      const centerY = H * 0.5;
+      const maxCenterDist = Math.hypot(centerX, centerY);
+      const waveFront = introProgress * 1.18;
 
       context.fillStyle = "#060606";
       context.fillRect(0, 0, W, H);
 
-      // Dérive lente du foyer + légère respiration du rayon.
-      const fx = (f.x + Math.sin(t * 0.045) * 0.05) * W;
-      const fy = (f.y + Math.cos(t * 0.035) * 0.05) * H;
-      const rad = f.rad * W * (1 + Math.sin(t * 0.05) * 0.07);
+      // Dérive plus visible du foyer + légère respiration du rayon.
+      const fx = (f.x + Math.sin(t * 0.08) * 0.07) * W;
+      const fy = (f.y + Math.cos(t * 0.065) * 0.07) * H;
+      const rad = f.rad * W * (1 + Math.sin(t * 0.085) * 0.1);
 
       for (const dot of dots) {
         // Micro-déplacement très lent.
         const px =
-          dot.x + Math.sin(t * 0.25 + dot.dphase) * 2.4 * motionFactor;
+          dot.x + Math.sin(t * 0.42 + dot.dphase) * 3.2 * motionFactor;
         const py =
-          dot.y + Math.cos(t * 0.21 + dot.dphase) * 2.4 * motionFactor;
+          dot.y + Math.cos(t * 0.36 + dot.dphase) * 3.2 * motionFactor;
 
         const dx = (px - fx) / rad;
         const dy = (py - fy) / rad;
         const d = Math.sqrt(dx * dx + dy * dy);
         const prox = Math.min((1 - Math.min(d, 1)) * f.str, 1);
+        // Apparition au lancement : onde qui part du centre de l'écran.
+        const centerDistNorm =
+          Math.hypot(px - centerX, py - centerY) / maxCenterDist;
+        const revealBand = 0.14;
+        const reveal = Math.min(
+          Math.max((waveFront - centerDistNorm) / revealBand, 0),
+          1,
+        );
+        const introRing =
+          introProgress < 1
+            ? Math.max(
+                0,
+                1 - Math.abs(centerDistNorm - waveFront) / (revealBand * 0.85),
+              )
+            : 0;
 
         const twinkle =
-          0.5 + (0.5 * motionFactor + 0.12) * Math.sin(t * dot.tw + dot.phase);
+          0.54 +
+          (0.52 * motionFactor + 0.13) * Math.sin(t * dot.tw + dot.phase);
 
         let col: string;
         let alpha: number;
         if (dot.kind === 0) {
           col = "255,255,255";
-          alpha = 0.12 + prox * 0.7;
+          alpha = 0.1 + prox * 0.62 + introRing * 0.2;
         } else if (dot.kind === 1) {
           col = "255,196,0";
-          alpha = 0.06 + prox * 0.85;
+          alpha = 0.06 + prox * 0.8 + introRing * 0.26;
         } else {
           col = "255,196,0";
-          alpha = 0.03 + prox * 0.1;
+          alpha = 0.03 + prox * 0.12 + introRing * 0.08;
         }
         alpha = Math.min(alpha * twinkle, 0.95);
+        alpha *= introProgress < 1 ? 0.08 + reveal * 0.92 : 1;
 
         context.fillStyle = "rgba(" + col + "," + alpha.toFixed(3) + ")";
         context.beginPath();
@@ -138,7 +161,7 @@ export default function DotField({ focus }: DotFieldProps) {
     let raf = 0;
     let last = 0;
     const start = performance.now();
-    const interval = 1000 / 36; // ~36 fps : plus fluide et toujours raisonnable en CPU
+    const interval = 1000 / 44; // ~44 fps : animation plus vivante
 
     function loop(now: number) {
       raf = requestAnimationFrame(loop);

@@ -22,7 +22,7 @@ export default function Rail({ onNewChat }: RailProps) {
 
   return (
     <nav
-      className={`z-20 flex h-full shrink-0 flex-col gap-2 py-6 transition-[width] duration-200 ease-out ${
+      className={`animate-ui-fade-up z-20 flex h-full shrink-0 flex-col gap-2 py-6 transition-[width] duration-200 ease-out ${
         expanded ? "w-[260px] px-3" : "w-[72px] items-center px-0"
       }`}
     >
@@ -61,7 +61,7 @@ export default function Rail({ onNewChat }: RailProps) {
       {/* Nouveau chat */}
       <button
         onClick={onNewChat}
-        className={`mt-3 flex items-center bg-white/[0.07] text-[#e6e6e6] transition-colors hover:bg-white/[0.12] ${
+        className={`mt-3 flex items-center bg-white/[0.07] text-[#e6e6e6] transition-colors hover:bg-white/12 ${
           expanded
             ? "gap-3 rounded-full px-4 py-2.5 text-[14px]"
             : "h-[46px] w-[46px] justify-center self-center rounded-full"
@@ -142,7 +142,7 @@ function NavItem({
         dim ? "text-[#9c9c9c]" : "text-[#bdbdbd]"
       } ${
         expanded
-          ? "w-full gap-3 rounded-full px-3 py-2 hover:bg-white/[0.06]"
+          ? "w-full gap-3 rounded-full px-3 py-2 hover:bg-white/6"
           : "h-11 w-11 justify-center"
       }`}
     >

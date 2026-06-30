@@ -63,3 +63,51 @@ body {
 .typing-dot:nth-child(3) {
   animation-delay: 0.4s;
 }
+
+/* Micro-animations d'ambiance */
+@keyframes ui-fade-up {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes ui-soft-float {
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-4px);
+  }
+}
+
+@keyframes ui-soft-glow {
+  0%,
+  100% {
+    box-shadow:
+      0 14px 50px rgba(0, 0, 0, 0.45),
+      0 0 0 rgba(255, 196, 0, 0);
+  }
+  50% {
+    box-shadow:
+      0 16px 54px rgba(0, 0, 0, 0.5),
+      0 0 40px rgba(255, 196, 0, 0.08);
+  }
+}
+
+.animate-ui-fade-up {
+  animation: ui-fade-up 460ms ease-out both;
+}
+
+.animate-ui-soft-float {
+  animation: ui-soft-float 7.5s ease-in-out infinite;
+}
+
+.animate-ui-soft-glow {
+  animation: ui-soft-glow 5.6s ease-in-out infinite;
+}
