@@ -1,58 +1,73 @@
 # Website-IA — « Jean »
 
-Application de chat IA en **Next.js 15 + TypeScript + Tailwind CSS v4**.
+Assistant de chat IA en **Next.js 15 + TypeScript + Tailwind CSS v4**.
 
-Fonctionnalités principales :
-- assistant IA servi par **Ollama**
-- authentification **Google** via Auth.js
-- conversations persistées dans **PostgreSQL** avec Prisma
-- interface avec thème clair/sombre et expérience de chat moderne
+Ce projet combine :
+- IA locale via **Ollama**
+- authentification **Google** avec **Auth.js**
+- persistance des conversations dans **PostgreSQL** via **Prisma**
+- interface moderne avec thème clair/sombre
 
 ## Prérequis
 
 - Node.js 20+
-- Docker Desktop / Docker Engine
-- compte Google OAuth
-- Ollama installé localement ou le stack Docker fourni
+- Docker
+- Ollama installé localement ou disponible via Docker
+- identifiants Google OAuth
 
-## 1. Configuration de l’environnement
+## 1. Configuration
 
-Copiez le fichier d’exemple puis renseignez les variables nécessaires :
+1. Copier le modèle d’environnement :
 
 ```bash
 cp .env.example .env
+```
+
+2. Générer `AUTH_SECRET` :
+
+```bash
 npx auth secret
 ```
 
-Variables obligatoires dans `.env` :
+3. Compléter dans `.env` :
 - `AUTH_SECRET`
 - `AUTH_GOOGLE_ID`
 - `AUTH_GOOGLE_SECRET`
 - `AUTH_URL` (par défaut `http://localhost:3000`)
-- `AUTH_TRUST_HOST=true`
 - `OLLAMA_URL` et `OLLAMA_MODEL`
 
-Le fichier [.env.example](.env.example) contient déjà la configuration adaptée au développement local et au mode Docker.
+Le fichier [.env.example](.env.example) contient la configuration de base utilisée pour le développement local.
 
-## 2. Démarrage rapide avec Docker
+## 2. Exécution avec Docker
 
-Le projet peut être lancé entièrement via Docker Compose :
+Pour démarrer l’ensemble du stack :
 
 ```bash
 docker compose up -d
 ```
 
-Cela démarre :
-- la base PostgreSQL
+Cette commande lance :
+- PostgreSQL
 - Ollama
 - l’application Next.js
 
-L’application sera disponible sur :
-- http://localhost:3000
+Ouvrir ensuite :
 
-## 3. Développement local (optionnel)
+```text
+http://localhost:3000
+```
 
-Si vous préférez travailler en local sans Docker pour l’app :
+### Reconstruire l’application
+
+Si vous modifiez le code ou souhaitez forcer une rebuild :
+
+```bash
+docker compose up -d --build app
+```
+
+## 3. Développement local
+
+Si vous utilisez uniquement Docker pour la base de données et le reste en local :
 
 ```bash
 docker compose up -d db
@@ -61,32 +76,31 @@ npx prisma db push
 npm run dev
 ```
 
-## 4. Modèle Ollama
+## 4. Gestion d’Ollama
 
-Si vous souhaitez précharger un modèle manuellement :
+Depuis la machine hôte :
 
 ```bash
 ollama pull qwen2:0.5b
 ollama list
 ```
 
-Par défaut, l’application utilise `qwen2:0.5b` via la variable `OLLAMA_MODEL`.
+Par défaut, le projet utilise le modèle `qwen2:0.5b`.
 
-## 5. Structure du projet
+## 5. Architecture
 
-- [prisma/schema.prisma](prisma/schema.prisma) : schéma Prisma des utilisateurs, sessions et conversations
-- [auth.ts](auth.ts) : configuration Auth.js avec Google et Prisma
-- [app/api/auth/[...nextauth]/route.ts](app/api/auth/[...nextauth]/route.ts) : route NextAuth
-- [app/api/chat/route.ts](app/api/chat/route.ts) : génération de réponse via Ollama
-- [app/api/conversations](app/api/conversations) : endpoints de conversations
-- [lib/prisma.ts](lib/prisma.ts) : client Prisma
-- [app/page.tsx](app/page.tsx) : point d’entrée de l’interface
+- `prisma/schema.prisma` : modèle de données (utilisateurs, sessions, conversations)
+- `auth.ts` : configuration Auth.js + Prisma adapter
+- `app/api/auth/[...nextauth]/route.ts` : endpoint d’authentification
+- `app/api/chat/route.ts` : génération de réponses via Ollama
+- `app/api/conversations` : routes de gestion des conversations
+- `lib/prisma.ts` : client Prisma
+- `app/page.tsx` : page principale et redirection login/chat
+- `components/Rail.tsx` : navigation latérale et actions utilisateur
 
-## 6. Notes utiles
+## 6. Notes
 
-- Le schéma Prisma est synchronisé automatiquement au démarrage de l’application Docker.
-- Pour reconstruire l’image applicative :
+- Le conteneur `app` synchronise le schéma Prisma au démarrage.
+- Si le service Docker `app` existe déjà, utilisez `--build` pour recharger les changements.
+- Le bouton de déconnexion affiche une confirmation avant de sortir du compte.
 
-```bash
-docker compose up -d --build app
-```
