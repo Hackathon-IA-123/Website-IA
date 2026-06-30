@@ -1,74 +1,92 @@
 # Website-IA — « Jean »
 
-Chat IA (style inspiré des assistants modernes) en **Next.js 15 (App Router) + TypeScript + Tailwind CSS v4**.
+Application de chat IA en **Next.js 15 + TypeScript + Tailwind CSS v4**.
 
-- Modèle IA servi par **Ollama** (local).
-- Connexion **Google** (Auth.js v5).
-- Conversations **persistées dans PostgreSQL** (Prisma) et **liées au compte** → on peut rouvrir une ancienne conversation.
-- Thème clair/sombre, sélecteur Médical/Finance, chat temporaire (non enregistré).
+Fonctionnalités principales :
+- assistant IA servi par **Ollama**
+- authentification **Google** via Auth.js
+- conversations persistées dans **PostgreSQL** avec Prisma
+- interface avec thème clair/sombre et expérience de chat moderne
 
 ## Prérequis
 
 - Node.js 20+
-- Docker (PostgreSQL et/ou déploiement)
-- **Ollama** installé (https://ollama.com)
-- Identifiants **Google OAuth**
+- Docker Desktop / Docker Engine
+- compte Google OAuth
+- Ollama installé localement ou le stack Docker fourni
 
-## 1. Variables d'environnement
+## 1. Configuration de l’environnement
 
-```bash
-cp env.example .env
-npx auth secret          # remplit AUTH_SECRET
-```
-
-Renseigner dans `.env` :
-- `DATABASE_URL` (déjà OK pour la base Docker locale)
-- `AUTH_GOOGLE_ID` / `AUTH_GOOGLE_SECRET` — créés sur
-  https://console.cloud.google.com/apis/credentials
-  (type **Application Web**, URI de redirection
-  `http://localhost:3000/api/auth/callback/google`)
-- `OLLAMA_URL` / `OLLAMA_MODEL`
-
-## 2. Modèle Ollama
+Copiez le fichier d’exemple puis renseignez les variables nécessaires :
 
 ```bash
-ollama pull qwen2:0.5b           # rapide, pour démo
-# (qualité supérieure : ollama pull qwen2.5:3b  -> OLLAMA_MODEL=qwen2.5:3b)
-ollama list                      # voir les modèles installés
+cp .env.example .env
+npx auth secret
 ```
 
-Ollama écoute sur `http://localhost:11434`.
+Variables obligatoires dans `.env` :
+- `AUTH_SECRET`
+- `AUTH_GOOGLE_ID`
+- `AUTH_GOOGLE_SECRET`
+- `AUTH_URL` (par défaut `http://localhost:3000`)
+- `AUTH_TRUST_HOST=true`
+- `OLLAMA_URL` et `OLLAMA_MODEL`
 
-## 3. Lancer en développement
+Le fichier [.env.example](.env.example) contient déjà la configuration adaptée au développement local et au mode Docker.
+
+## 2. Démarrage rapide avec Docker
+
+Le projet peut être lancé entièrement via Docker Compose :
 
 ```bash
-docker compose up -d db          # 1) base de données
-npm install                      # 2) dépendances (+ prisma generate)
-npx prisma db push               # 3) crée les tables
-npm run dev                      # 4) http://localhost:3000
+docker compose up -d
 ```
 
-## 4. Déploiement (tout en Docker)
+Cela démarre :
+- la base PostgreSQL
+- Ollama
+- l’application Next.js
+
+L’application sera disponible sur :
+- http://localhost:3000
+
+## 3. Développement local (optionnel)
+
+Si vous préférez travailler en local sans Docker pour l’app :
 
 ```bash
-# .env doit contenir AUTH_SECRET, AUTH_GOOGLE_ID, AUTH_GOOGLE_SECRET
-docker compose up --build
+docker compose up -d db
+npm install
+npx prisma db push
+npm run dev
 ```
 
-`docker-compose.yml` démarre **PostgreSQL** + l'**app** (qui synchronise le schéma
-au démarrage). Ollama reste sur la machine hôte ; l'app le joint via
-`host.docker.internal`.
+## 4. Modèle Ollama
 
-## Architecture
+Si vous souhaitez précharger un modèle manuellement :
 
-| Élément | Fichier |
-|---|---|
-| Schéma DB (User/Account/Session + Conversation/Message) | [prisma/schema.prisma](prisma/schema.prisma) |
-| Config Auth.js (Google + Prisma adapter) | [auth.ts](auth.ts) |
-| Route NextAuth | [app/api/auth/[...nextauth]/route.ts](app/api/auth/%5B...nextauth%5D/route.ts) |
-| Chat (auth + Ollama + persistance) | [app/api/chat/route.ts](app/api/chat/route.ts) |
-| Conversations (liste / lecture / suppression) | [app/api/conversations](app/api/conversations) |
-| Client Prisma | [lib/prisma.ts](lib/prisma.ts) |
-| Page (login si déconnecté, sinon chat) | [app/page.tsx](app/page.tsx) |
+```bash
+ollama pull qwen2:0.5b
+ollama list
+```
 
-Variables : voir [env.example](env.example).
+Par défaut, l’application utilise `qwen2:0.5b` via la variable `OLLAMA_MODEL`.
+
+## 5. Structure du projet
+
+- [prisma/schema.prisma](prisma/schema.prisma) : schéma Prisma des utilisateurs, sessions et conversations
+- [auth.ts](auth.ts) : configuration Auth.js avec Google et Prisma
+- [app/api/auth/[...nextauth]/route.ts](app/api/auth/[...nextauth]/route.ts) : route NextAuth
+- [app/api/chat/route.ts](app/api/chat/route.ts) : génération de réponse via Ollama
+- [app/api/conversations](app/api/conversations) : endpoints de conversations
+- [lib/prisma.ts](lib/prisma.ts) : client Prisma
+- [app/page.tsx](app/page.tsx) : point d’entrée de l’interface
+
+## 6. Notes utiles
+
+- Le schéma Prisma est synchronisé automatiquement au démarrage de l’application Docker.
+- Pour reconstruire l’image applicative :
+
+```bash
+docker compose up -d --build app
+```
