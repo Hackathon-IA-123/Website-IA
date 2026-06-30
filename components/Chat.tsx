@@ -6,9 +6,11 @@ import ChatView from "./ChatView";
 import DotField from "./DotField";
 import Home from "./Home";
 import Rail from "./Rail";
-import { PenIcon } from "./icons";
+import { useTheme } from "./ThemeProvider";
+import { TemporaryChatIcon } from "./icons";
 
 export default function Chat() {
+  const { theme } = useTheme();
   const [messages, setMessages] = useState<Message[]>([]);
   const [loading, setLoading] = useState(false);
   const [title, setTitle] = useState("Nouveau fil");
