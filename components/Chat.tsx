@@ -240,6 +240,7 @@ export default function Chat({
             onSend={sendMessage}
             model={model}
             onModelChange={setModel}
+            userName={user.name}
           />
         ) : (
           <ChatView

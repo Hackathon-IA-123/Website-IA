@@ -2,6 +2,7 @@
 
 import Composer from "./Composer";
 import type { ModelId } from "@/app/types";
+import { auth } from "@/auth";
 
 const SUGGESTIONS = [
   "✦ Résumer un document",
@@ -13,17 +14,20 @@ interface HomeProps {
   onSend: (text: string) => void;
   model: ModelId;
   onModelChange: (model: ModelId) => void;
+  userName: string | null
 }
 
 export default function Home({
   onSend,
   model,
   onModelChange,
+  userName
 }: HomeProps) {
+  
   return (
     <div className="flex h-full flex-col items-center justify-center px-6">
       <h1 className="text-center text-[clamp(34px,5vw,56px)] font-light leading-[1.1] tracking-[-0.015em] text-foreground">
-        Bonsoir Thomas, on <span className="text-accent">explore</span> ?
+        Bonsoir { userName }, on <span className="text-accent">explore</span> ?
       </h1>
 
       <div className="mt-[46px] w-full max-w-[860px]">
