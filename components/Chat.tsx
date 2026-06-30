@@ -14,6 +14,7 @@ export default function Chat() {
   const [loading, setLoading] = useState(false);
   const [title, setTitle] = useState("Nouveau fil");
   const [model, setModel] = useState<ModelId>("medical");
+  const [temporary, setTemporary] = useState(false);
   const { theme } = useTheme();
 
   const isEmpty = messages.length === 0;
@@ -113,8 +114,15 @@ export default function Chat() {
       {/* Chat temporaire (haut droite) - accueil uniquement */}
       {isEmpty && (
         <button
-          aria-label="Composer"
-          className="absolute right-[30px] top-[30px] z-20 flex h-10 w-10 items-center justify-center rounded-full border-[1.4px] border-dashed border-(--border-dashed) text-(--ink) hover:text-(--hover-text)"
+          type="button"
+          onClick={toggleTemporary}
+          aria-label={temporary ? "Désactiver le chat temporaire" : "Activer le chat temporaire"}
+          aria-pressed={temporary}
+          className={`absolute right-[30px] top-[30px] z-20 flex h-10 w-10 items-center justify-center rounded-full border-[1.4px] border-dashed text-(--ink) hover:text-(--hover-text) ${
+            temporary
+              ? "border-accent bg-accent/10 text-accent"
+              : "border-(--border-dashed)"
+          }`}
         >
           <TemporaryChatIcon size={20} />
         </button>

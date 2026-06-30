@@ -2,7 +2,6 @@
 
 import Composer from "./Composer";
 import type { ModelId } from "@/app/types";
-import { TemporaryChatIcon } from "./icons";
 
 const SUGGESTIONS = [
   "✦ Résumer un document",

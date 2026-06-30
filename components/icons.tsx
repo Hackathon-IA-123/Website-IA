@@ -196,6 +196,19 @@ export function MoonIcon({ size }: P) {
   );
 }
 
+/** Chat temporaire (bulle en pointillés, non enregistré). */
+export function TemporaryChatIcon({ size }: P) {
+  return (
+    <svg {...base(size)}>
+      <path
+        d="M12 4.5C7.9 4.5 4.5 7.4 4.5 11c0 2.1 1.1 4 2.8 5.2V19l3.8-2.1c1 .3 2 .5 3.1.5 4.1 0 7.5-2.9 7.5-6.5S16.1 4.5 12 4.5z"
+        strokeDasharray="3.5 2.5"
+      />
+      <path d="M9.5 10.5h5M9.5 13.5h3" />
+    </svg>
+  );
+}
+
 /** Étincelle de marque (fallback si le logo PNG est absent). */
 export function SparkIcon({ size = 30 }: P) {
   return (
