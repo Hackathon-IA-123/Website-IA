@@ -47,6 +47,8 @@ export default function DotField({ focus }: DotFieldProps) {
     const reduceMotion = window.matchMedia(
       "(prefers-reduced-motion: reduce)"
     ).matches;
+    // Keep a subtle animation even when reduced motion is enabled.
+    const motionFactor = reduceMotion ? 0.38 : 1;
 
     const sp = 15;
     const r = 1.9;
@@ -76,7 +78,7 @@ export default function DotField({ focus }: DotFieldProps) {
             y: y + (Math.random() - 0.5) * 1.6,
             kind,
             phase: Math.random() * Math.PI * 2,
-            tw: 0.18 + Math.random() * 0.5, // période ~12 à 35 s
+            tw: 0.35 + Math.random() * 0.95, // période ~5 à 18 s
             dphase: Math.random() * Math.PI * 2,
           });
         }
@@ -97,21 +99,18 @@ export default function DotField({ focus }: DotFieldProps) {
 
       for (const dot of dots) {
         // Micro-déplacement très lent.
-        const px = reduceMotion
-          ? dot.x
-          : dot.x + Math.sin(t * 0.12 + dot.dphase) * 1.4;
-        const py = reduceMotion
-          ? dot.y
-          : dot.y + Math.cos(t * 0.1 + dot.dphase) * 1.4;
+        const px =
+          dot.x + Math.sin(t * 0.25 + dot.dphase) * 2.4 * motionFactor;
+        const py =
+          dot.y + Math.cos(t * 0.21 + dot.dphase) * 2.4 * motionFactor;
 
         const dx = (px - fx) / rad;
         const dy = (py - fy) / rad;
         const d = Math.sqrt(dx * dx + dy * dy);
         const prox = Math.min((1 - Math.min(d, 1)) * f.str, 1);
 
-        const twinkle = reduceMotion
-          ? 1
-          : 0.62 + 0.38 * Math.sin(t * dot.tw + dot.phase);
+        const twinkle =
+          0.5 + (0.5 * motionFactor + 0.12) * Math.sin(t * dot.tw + dot.phase);
 
         let col: string;
         let alpha: number;
@@ -139,7 +138,7 @@ export default function DotField({ focus }: DotFieldProps) {
     let raf = 0;
     let last = 0;
     const start = performance.now();
-    const interval = 1000 / 24; // ~24 fps : suffisant pour un mouvement lent, sobre en CPU
+    const interval = 1000 / 36; // ~36 fps : plus fluide et toujours raisonnable en CPU
 
     function loop(now: number) {
       raf = requestAnimationFrame(loop);
@@ -148,18 +147,14 @@ export default function DotField({ focus }: DotFieldProps) {
       render((now - start) / 1000);
     }
 
-    if (reduceMotion) {
-      render(0);
-    } else {
-      raf = requestAnimationFrame(loop);
-    }
+    raf = requestAnimationFrame(loop);
 
     let resizeRaf = 0;
     function onResize() {
       cancelAnimationFrame(resizeRaf);
       resizeRaf = requestAnimationFrame(() => {
         build();
-        if (reduceMotion) render(0);
+        render((performance.now() - start) / 1000);
       });
     }
     window.addEventListener("resize", onResize);
