@@ -1,6 +1,11 @@
 "use client";
 
-import type { Message, ModelId } from "@/app/types";
+import type {
+  ConversationSummary,
+  Message,
+  ModelId,
+  SessionUser,
+} from "@/app/types";
 import { useState } from "react";
 import ChatView from "./ChatView";
 import DotField from "./DotField";
@@ -9,12 +14,20 @@ import { TemporaryChatIcon } from "./icons";
 import Rail from "./Rail";
 import { useTheme } from "./ThemeProvider";
 
-export default function Chat() {
+interface ChatProps {
+  user: SessionUser;
+  initialConversations: ConversationSummary[];
+}
+
+export default function Chat({ user, initialConversations }: ChatProps) {
   const [messages, setMessages] = useState<Message[]>([]);
   const [loading, setLoading] = useState(false);
   const [title, setTitle] = useState("Nouveau fil");
   const [model, setModel] = useState<ModelId>("medical");
   const [temporary, setTemporary] = useState(false);
+  const [conversationId, setConversationId] = useState<string | null>(null);
+  const [conversations, setConversations] =
+    useState<ConversationSummary[]>(initialConversations);
   const { theme } = useTheme();
 
   const isEmpty = messages.length === 0;
@@ -24,25 +37,63 @@ export default function Chat() {
     setLoading(false);
     setTitle("Nouveau fil");
     setTemporary(false);
+    setConversationId(null);
   }
 
-  // Active/désactive le chat temporaire et démarre une conversation vierge.
   function toggleTemporary() {
     setMessages([]);
     setLoading(false);
+    setConversationId(null);
     setTemporary((v) => !v);
   }
 
-  // Envoie `history` au modèle et streame une réponse de l'assistant.
-  async function streamReply(history: Message[]) {
+  async function refreshConversations() {
+    try {
+      const res = await fetch("/api/conversations");
+      if (!res.ok) return;
+      const data = await res.json();
+      setConversations(data.conversations);
+    } catch {
+      /* ignore */
+    }
+  }
+
+  // Charge une ancienne conversation pour y revenir.
+  async function loadConversation(id: string) {
+    if (loading || id === conversationId) return;
+    try {
+      const res = await fetch(`/api/conversations/${id}`);
+      if (!res.ok) return;
+      const { conversation } = await res.json();
+      setMessages(conversation.messages);
+      setConversationId(conversation.id);
+      setTitle(conversation.title);
+      setModel(conversation.model as ModelId);
+      setTemporary(false);
+    } catch {
+      /* ignore */
+    }
+  }
+
+  // Envoie l'historique au backend (Ollama) et streame la réponse.
+  async function streamReply(history: Message[], regenerate = false) {
     setLoading(true);
     try {
       const res = await fetch("/api/chat", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ messages: history, model, temporary }),
+        body: JSON.stringify({
+          messages: history,
+          model,
+          temporary,
+          conversationId,
+          regenerate,
+        }),
       });
-      if (!res.body) throw new Error("Pas de réponse");
+      if (!res.ok || !res.body) throw new Error("Pas de réponse");
+
+      const cid = res.headers.get("X-Conversation-Id");
+      if (cid && cid !== "temp") setConversationId(cid);
 
       const assistantId = crypto.randomUUID();
       setMessages((prev) => [
@@ -62,6 +113,8 @@ export default function Chat() {
           ),
         );
       }
+
+      if (!temporary) await refreshConversations();
     } catch {
       setMessages((prev) => [
         ...prev,
@@ -85,21 +138,20 @@ export default function Chat() {
     };
     const history = [...messages, userMessage];
     setMessages(history);
-    if (messages.length === 0) {
+    if (messages.length === 0 && !temporary) {
       setTitle(text.length > 38 ? text.slice(0, 38) + "…" : text);
     }
     await streamReply(history);
   }
 
-  // Régénère une réponse : on repart de l'historique jusqu'au message
-  // utilisateur qui la précède, puis on re-streame.
+  // Régénère la dernière réponse de l'assistant.
   async function regenerate(assistantId: string) {
     if (loading) return;
     const idx = messages.findIndex((m) => m.id === assistantId);
     if (idx <= 0) return;
-    const history = messages.slice(0, idx); // garde tout jusqu'au message user inclus
+    const history = messages.slice(0, idx);
     setMessages(history);
-    await streamReply(history);
+    await streamReply(history, true);
   }
 
   // Foyer lumineux : centre pour l'accueil (2a), bas pour la conversation (2c).
@@ -116,7 +168,11 @@ export default function Chat() {
         <button
           type="button"
           onClick={toggleTemporary}
-          aria-label={temporary ? "Désactiver le chat temporaire" : "Activer le chat temporaire"}
+          aria-label={
+            temporary
+              ? "Désactiver le chat temporaire"
+              : "Activer le chat temporaire"
+          }
           aria-pressed={temporary}
           className={`absolute right-[30px] top-[30px] z-20 flex h-10 w-10 items-center justify-center rounded-full border-[1.4px] border-dashed text-(--ink) hover:text-(--hover-text) ${
             temporary
@@ -128,7 +184,13 @@ export default function Chat() {
         </button>
       )}
 
-      <Rail onNewChat={newChat} />
+      <Rail
+        user={user}
+        conversations={conversations}
+        activeId={conversationId}
+        onNewChat={newChat}
+        onSelect={loadConversation}
+      />
 
       <main className="animate-ui-fade-up relative z-10 min-w-0 flex-1">
         {isEmpty ? (
