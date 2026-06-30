@@ -179,6 +179,18 @@ export function PanelLeftIcon({ size }: P) {
   );
 }
 
+/** Icône « chat temporaire » : bulle de discussion en pointillés. */
+export function TemporaryChatIcon({ size }: P) {
+  return (
+    <svg {...base(size)}>
+      <path
+        d="M21 11.5a8.5 8.5 0 0 1-12.6 7.4L3.5 20.5l1.6-4.9A8.5 8.5 0 1 1 21 11.5Z"
+        strokeDasharray="2.6 2.8"
+      />
+    </svg>
+  );
+}
+
 /** Étincelle de marque (fallback si le logo PNG est absent). */
 export function SparkIcon({ size = 30 }: P) {
   return (

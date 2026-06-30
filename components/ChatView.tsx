@@ -10,6 +10,7 @@ import {
   DotsIcon,
   RegenIcon,
   ShareIcon,
+  TemporaryChatIcon,
   ThumbDownIcon,
   ThumbUpIcon,
 } from "./icons";
@@ -22,6 +23,8 @@ interface ChatViewProps {
   onRegenerate: (assistantId: string) => void;
   model: ModelId;
   onModelChange: (model: ModelId) => void;
+  temporary: boolean;
+  onToggleTemporary: () => void;
 }
 
 type Feedback = "up" | "down";
@@ -34,6 +37,8 @@ export default function ChatView({
   onRegenerate,
   model,
   onModelChange,
+  temporary,
+  onToggleTemporary,
 }: ChatViewProps) {
   const bottomRef = useRef<HTMLDivElement>(null);
   const [feedback, setFeedback] = useState<Record<string, Feedback>>({});
@@ -84,13 +89,36 @@ export default function ChatView({
     <div className="relative flex h-full flex-col">
       {/* Barre supérieure */}
       <div className="z-10 flex h-[72px] shrink-0 items-center justify-between bg-gradient-to-b from-[#060606] to-transparent px-[30px]">
-        <div className="flex items-center gap-2 text-[20px] font-medium text-[#ededed]">
-          {title}
-          <span className="text-[#7a7a7a]">
-            <ChevronDownIcon size={16} />
-          </span>
+        <div className="flex items-center gap-3">
+          <div className="flex items-center gap-2 text-[20px] font-medium text-[#ededed]">
+            {temporary ? "Chat temporaire" : title}
+            <span className="text-[#7a7a7a]">
+              <ChevronDownIcon size={16} />
+            </span>
+          </div>
+          {temporary && (
+            <span className="flex items-center gap-1.5 rounded-full border border-accent/30 bg-accent/10 px-2.5 py-1 text-[12px] font-medium text-accent">
+              <TemporaryChatIcon size={14} />
+              Temporaire
+            </span>
+          )}
         </div>
         <div className="flex items-center gap-5 text-[#9c9c9c]">
+          <button
+            onClick={onToggleTemporary}
+            aria-label="Chat temporaire"
+            aria-pressed={temporary}
+            title={
+              temporary ? "Désactiver le chat temporaire" : "Chat temporaire"
+            }
+            className={`flex h-9 w-9 items-center justify-center rounded-full transition-colors ${
+              temporary
+                ? "bg-accent/15 text-accent ring-1 ring-accent/40"
+                : "hover:bg-white/[0.06] hover:text-white"
+            }`}
+          >
+            <TemporaryChatIcon size={19} />
+          </button>
           <button aria-label="Partager" className="hover:text-white">
             <ShareIcon />
           </button>

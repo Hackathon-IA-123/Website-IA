@@ -5,7 +5,7 @@ import { useState } from "react";
 import ChatView from "./ChatView";
 import DotField from "./DotField";
 import Home from "./Home";
-import { PenIcon } from "./icons";
+import { TemporaryChatIcon } from "./icons";
 import Rail from "./Rail";
 
 export default function Chat() {
@@ -13,6 +13,7 @@ export default function Chat() {
   const [loading, setLoading] = useState(false);
   const [title, setTitle] = useState("Nouveau fil");
   const [model, setModel] = useState<ModelId>("medical");
+  const [temporary, setTemporary] = useState(false);
 
   const isEmpty = messages.length === 0;
 
@@ -20,6 +21,14 @@ export default function Chat() {
     setMessages([]);
     setLoading(false);
     setTitle("Nouveau fil");
+    setTemporary(false);
+  }
+
+  // Active/désactive le chat temporaire et démarre une conversation vierge.
+  function toggleTemporary() {
+    setMessages([]);
+    setLoading(false);
+    setTemporary((v) => !v);
   }
 
   // Envoie `history` au modèle et streame une réponse de l'assistant.
@@ -29,7 +38,7 @@ export default function Chat() {
       const res = await fetch("/api/chat", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ messages: history, model }),
+        body: JSON.stringify({ messages: history, model, temporary }),
       });
       if (!res.body) throw new Error("Pas de réponse");
 
@@ -100,13 +109,22 @@ export default function Chat() {
     <div className="relative flex h-screen w-screen overflow-hidden">
       <DotField focus={focus} />
 
-      {/* Édition (haut droite) - accueil uniquement */}
+      {/* Chat temporaire (haut droite) - accueil uniquement */}
       {isEmpty && (
         <button
-          aria-label="Composer"
-          className="absolute right-[30px] top-[30px] z-20 flex h-10 w-10 items-center justify-center rounded-full border-[1.4px] border-dashed border-white/[0.28] text-[#cfcfcf] hover:text-white"
+          onClick={toggleTemporary}
+          aria-label="Chat temporaire"
+          aria-pressed={temporary}
+          title={
+            temporary ? "Désactiver le chat temporaire" : "Chat temporaire"
+          }
+          className={`absolute right-[30px] top-[30px] z-20 flex h-10 w-10 items-center justify-center rounded-full transition-colors ${
+            temporary
+              ? "bg-accent/15 text-accent ring-1 ring-accent/40"
+              : "text-[#cfcfcf] hover:bg-white/[0.06] hover:text-white"
+          }`}
         >
-          <PenIcon size={20} />
+          <TemporaryChatIcon size={20} />
         </button>
       )}
 
@@ -114,7 +132,12 @@ export default function Chat() {
 
       <main className="animate-ui-fade-up relative z-10 min-w-0 flex-1">
         {isEmpty ? (
-          <Home onSend={sendMessage} model={model} onModelChange={setModel} />
+          <Home
+            onSend={sendMessage}
+            model={model}
+            onModelChange={setModel}
+            temporary={temporary}
+          />
         ) : (
           <ChatView
             title={title}
@@ -124,6 +147,8 @@ export default function Chat() {
             onRegenerate={regenerate}
             model={model}
             onModelChange={setModel}
+            temporary={temporary}
+            onToggleTemporary={toggleTemporary}
           />
         )}
       </main>
