@@ -1,37 +1,29 @@
 import type { Message } from "@/app/types";
 
-/**
- * Mock de l'endpoint de chat.
- *
- * Pour l'instant on renvoie une réponse factice en streaming (SSE-like via
- * ReadableStream) afin de pouvoir tester l'UI sans modèle réel.
- *
- * Plus tard : remplacer le contenu de cette fonction par un appel au modèle IA
- * (Anthropic, OpenAI, etc.) et streamer ses tokens à la place.
- */
 export async function POST(req: Request) {
   const { messages } = (await req.json()) as { messages: Message[] };
-  const lastUser = [...messages].reverse().find((m) => m.role === "user");
 
-  const reply = `Ceci est une réponse de démonstration. La connexion au modèle IA sera branchée ici.\n\nTu as écrit : « ${lastUser?.content ?? ""} »`;
-
-  const encoder = new TextEncoder();
-  const stream = new ReadableStream({
-    async start(controller) {
-      // Streame mot par mot pour simuler une génération token par token.
-      const words = reply.split(" ");
-      for (const word of words) {
-        controller.enqueue(encoder.encode(word + " "));
-        await new Promise((r) => setTimeout(r, 30));
-      }
-      controller.close();
-    },
+  const res = await fetch(`${process.env.OLLAMA_BASE_URL}/api/chat`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({
+      model: process.env.OLLAMA_MODEL || "phi35-finance",
+      messages,
+      stream: false,
+    }),
   });
 
-  return new Response(stream, {
+  if (!res.ok) {
+    return new Response(await res.text(), { status: 500 });
+  }
+
+  const data = await res.json();
+
+  return new Response(data.message.content, {
     headers: {
       "Content-Type": "text/plain; charset=utf-8",
       "Cache-Control": "no-cache",
     },
   });
+    console.log("API CHAT CALLED");
 }
