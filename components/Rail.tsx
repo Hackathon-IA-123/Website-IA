@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import Logo from "./Logo";
+import { useTheme } from "./ThemeProvider";
 import {
   PenIcon,
   SearchIcon,
@@ -9,8 +10,9 @@ import {
   BagIcon,
   GridIcon,
   HistoryIcon,
-  GearIcon,
   PanelLeftIcon,
+  SunIcon,
+  MoonIcon,
 } from "./icons";
 
 interface RailProps {
@@ -19,6 +21,8 @@ interface RailProps {
 
 export default function Rail({ onNewChat }: RailProps) {
   const [expanded, setExpanded] = useState(false);
+  const { theme, toggleTheme } = useTheme();
+  const isDark = theme === "dark";
 
   return (
     <nav
@@ -36,15 +40,17 @@ export default function Rail({ onNewChat }: RailProps) {
             </span>
           </div>
           <button
+            type="button"
             onClick={() => setExpanded(false)}
             aria-label="Réduire le menu"
-            className="flex h-9 w-9 items-center justify-center rounded-full text-[#9c9c9c] transition-colors hover:bg-white/[0.07] hover:text-white"
+            className="flex h-9 w-9 items-center justify-center rounded-full text-(--ink-dim) transition-colors hover:bg-(--surface) hover:text-(--hover-text)"
           >
             <PanelLeftIcon size={20} />
           </button>
         </div>
       ) : (
         <button
+          type="button"
           onClick={() => setExpanded(true)}
           aria-label="Agrandir le menu"
           className="group relative flex h-[34px] w-[34px] items-center justify-center self-center"
@@ -52,7 +58,7 @@ export default function Rail({ onNewChat }: RailProps) {
           <span className="transition-opacity duration-150 group-hover:opacity-0">
             <Logo size={34} />
           </span>
-          <span className="absolute inset-0 flex items-center justify-center text-[#cfcfcf] opacity-0 transition-opacity duration-150 group-hover:opacity-100">
+          <span className="absolute inset-0 flex items-center justify-center text-(--ink) opacity-0 transition-opacity duration-150 group-hover:opacity-100">
             <PanelLeftIcon size={22} />
           </span>
         </button>
@@ -60,8 +66,9 @@ export default function Rail({ onNewChat }: RailProps) {
 
       {/* Nouveau chat */}
       <button
+        type="button"
         onClick={onNewChat}
-        className={`mt-3 flex items-center bg-white/[0.07] text-[#e6e6e6] transition-colors hover:bg-white/12 ${
+        className={`mt-3 flex items-center bg-(--surface) text-(--ink-strong) transition-colors hover:bg-(--surface-hover) ${
           expanded
             ? "gap-3 rounded-full px-4 py-2.5 text-[14px]"
             : "h-[46px] w-[46px] justify-center self-center rounded-full"
@@ -102,8 +109,13 @@ export default function Rail({ onNewChat }: RailProps) {
         <NavItem expanded={expanded} label="Historique" dim>
           <HistoryIcon />
         </NavItem>
-        <NavItem expanded={expanded} label="Paramètres" dim>
-          <GearIcon />
+        <NavItem
+          expanded={expanded}
+          label={isDark ? "Mode clair" : "Mode sombre"}
+          onClick={toggleTheme}
+          dim
+        >
+          {isDark ? <SunIcon /> : <MoonIcon />}
         </NavItem>
         <div
           className={`flex items-center ${
@@ -114,7 +126,7 @@ export default function Rail({ onNewChat }: RailProps) {
             T
           </div>
           {expanded && (
-            <span className="whitespace-nowrap text-[14px] text-[#cfcfcf]">
+            <span className="whitespace-nowrap text-[14px] text-(--ink)">
               Thomas
             </span>
           )}
@@ -129,20 +141,24 @@ function NavItem({
   label,
   expanded,
   dim,
+  onClick,
 }: {
   children: React.ReactNode;
   label: string;
   expanded: boolean;
   dim?: boolean;
+  onClick?: () => void;
 }) {
   return (
     <button
+      type="button"
       aria-label={label}
-      className={`flex items-center transition-colors hover:text-white ${
-        dim ? "text-[#9c9c9c]" : "text-[#bdbdbd]"
+      onClick={onClick}
+      className={`flex items-center transition-colors hover:text-(--hover-text) ${
+        dim ? "text-(--ink-dim)" : "text-(--ink)"
       } ${
         expanded
-          ? "w-full gap-3 rounded-full px-3 py-2 hover:bg-white/6"
+          ? "w-full gap-3 rounded-full px-3 py-2 hover:bg-(--surface-soft)"
           : "h-11 w-11 justify-center"
       }`}
     >

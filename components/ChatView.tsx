@@ -83,18 +83,18 @@ export default function ChatView({
   return (
     <div className="relative flex h-full flex-col">
       {/* Barre supérieure */}
-      <div className="z-10 flex h-[72px] shrink-0 items-center justify-between bg-gradient-to-b from-[#060606] to-transparent px-[30px]">
-        <div className="flex items-center gap-2 text-[20px] font-medium text-[#ededed]">
+      <div className="z-10 flex h-[72px] shrink-0 items-center justify-between bg-linear-to-b from-(--top-fade) to-transparent px-[30px]">
+        <div className="flex items-center gap-2 text-[20px] font-medium text-(--ink-strong)">
           {title}
-          <span className="text-[#7a7a7a]">
+          <span className="text-(--ink-dim)">
             <ChevronDownIcon size={16} />
           </span>
         </div>
-        <div className="flex items-center gap-5 text-[#9c9c9c]">
-          <button aria-label="Partager" className="hover:text-white">
+        <div className="flex items-center gap-5 text-(--ink-dim)">
+          <button aria-label="Partager" className="hover:text-(--hover-text)">
             <ShareIcon />
           </button>
-          <button aria-label="Plus" className="hover:text-white">
+          <button aria-label="Plus" className="hover:text-(--hover-text)">
             <DotsIcon />
           </button>
         </div>
@@ -106,7 +106,7 @@ export default function ChatView({
           {messages.map((m) =>
             m.role === "user" ? (
               <div key={m.id} className="mb-[34px] flex justify-end">
-                <div className="max-w-[74%] whitespace-pre-wrap rounded-[22px_22px_7px_22px] border border-white/5 bg-white/[0.07] px-5 py-[14px] text-[17px] leading-[1.55] text-[#ededed]">
+                <div className="max-w-[74%] whitespace-pre-wrap rounded-[22px_22px_7px_22px] border border-(--border-soft) bg-(--surface) px-5 py-[14px] text-[17px] leading-[1.55] text-(--ink-strong)">
                   {m.content}
                 </div>
               </div>
@@ -115,10 +115,10 @@ export default function ChatView({
                 <span className="mt-0.5 shrink-0">
                   <Logo size={30} />
                 </span>
-                <div className="flex-1 text-[17px] leading-[1.65] text-[#e6e6e6]">
+                <div className="flex-1 text-[17px] leading-[1.65] text-(--ink-strong)">
                   <div className="whitespace-pre-wrap">{m.content}</div>
                   {!loading && m.content && (
-                    <div className="mt-[18px] flex gap-[18px] text-[#8a8a8a]">
+                    <div className="mt-[18px] flex gap-[18px] text-(--ink-dim)">
                       <ActionButton
                         label={copiedId === m.id ? "Copié" : "Copier"}
                         active={copiedId === m.id}
@@ -205,7 +205,7 @@ function ActionButton({
       aria-label={label}
       title={label}
       className={`transition-colors ${
-        active ? "text-accent" : "hover:text-white"
+        active ? "text-accent" : "hover:text-(--hover-text)"
       }`}
     >
       {children}

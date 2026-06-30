@@ -65,14 +65,17 @@ export default function Composer({
   const currentModel = MODELS.find((m) => m.id === model) ?? MODELS[0];
 
   const minH = variant === "home" ? "min-h-[66px]" : "min-h-[62px]";
-  const bg = variant === "home" ? "bg-[rgba(20,20,21,0.90)]" : "bg-[rgba(22,22,23,0.90)]";
+  const bg =
+    variant === "home"
+      ? "bg-(--composer-bg-home)"
+      : "bg-(--composer-bg-chat)";
   const textSize = variant === "home" ? "text-[19px]" : "text-[18px]";
 
   return (
     <div
-      className={`animate-ui-soft-float animate-ui-soft-glow flex w-full items-center gap-[14px] rounded-[33px] ${bg} ${minH} border border-white/8 py-2 pl-[22px] pr-[14px] backdrop-blur-[14px]`}
+      className={`animate-ui-soft-float animate-ui-soft-glow flex w-full items-center gap-[14px] rounded-[33px] ${bg} ${minH} border border-(--border-soft) py-2 pl-[22px] pr-[14px] backdrop-blur-[14px]`}
     >
-      <span className="text-[#cfcfcf]">
+      <span className="text-(--ink)">
         <PlusIcon size={26} />
       </span>
 
@@ -92,11 +95,11 @@ export default function Composer({
           onClick={() => setMenuOpen((v) => !v)}
           aria-haspopup="listbox"
           aria-expanded={menuOpen}
-          className="flex items-center gap-[5px] rounded-[14px] px-[10px] py-2 text-[17px] font-medium text-[#dcdcdc] transition-colors hover:bg-white/6"
+          className="flex items-center gap-[5px] rounded-[14px] px-[10px] py-2 text-[17px] font-medium text-(--ink-strong) transition-colors hover:bg-(--surface-soft)"
         >
           {currentModel.label}
           <span
-            className={`text-[#9c9c9c] transition-transform ${
+            className={`text-(--ink-dim) transition-transform ${
               menuOpen ? "rotate-180" : ""
             }`}
           >
@@ -107,7 +110,7 @@ export default function Composer({
         {menuOpen && (
           <ul
             role="listbox"
-            className="absolute bottom-full right-0 z-30 mb-3 min-w-[180px] overflow-hidden rounded-2xl border border-white/10 bg-[rgba(24,24,26,0.96)] p-1.5 shadow-[0_18px_50px_rgba(0,0,0,0.55)] backdrop-blur-[14px]"
+            className="absolute bottom-full right-0 z-30 mb-3 min-w-[180px] overflow-hidden rounded-2xl border border-(--border-soft) bg-(--menu-bg) p-1.5 shadow-[0_18px_50px_var(--composer-shadow)] backdrop-blur-[14px]"
           >
             {MODELS.map((m) => (
               <li key={m.id}>
@@ -119,8 +122,8 @@ export default function Composer({
                     onModelChange(m.id);
                     setMenuOpen(false);
                   }}
-                  className={`flex w-full items-center justify-between rounded-xl px-3 py-2.5 text-left text-[15px] transition-colors hover:bg-white/[0.07] ${
-                    m.id === model ? "text-accent" : "text-[#dcdcdc]"
+                  className={`flex w-full items-center justify-between rounded-xl px-3 py-2.5 text-left text-[15px] transition-colors hover:bg-(--surface) ${
+                    m.id === model ? "text-accent" : "text-(--ink-strong)"
                   }`}
                 >
                   {m.label}
@@ -144,7 +147,7 @@ export default function Composer({
       ) : (
         <button
           aria-label="Dictée vocale"
-          className="flex h-[42px] w-[42px] shrink-0 items-center justify-center rounded-full text-[#cfcfcf]"
+          className="flex h-[42px] w-[42px] shrink-0 items-center justify-center rounded-full text-(--ink)"
         >
           <MicIcon size={22} />
         </button>

@@ -179,6 +179,23 @@ export function PanelLeftIcon({ size }: P) {
   );
 }
 
+export function SunIcon({ size }: P) {
+  return (
+    <svg {...base(size)}>
+      <circle cx="12" cy="12" r="4.2" />
+      <path d="M12 2.5v2.6M12 18.9v2.6M2.5 12h2.6M18.9 12h2.6M5.1 5.1l1.8 1.8M17.1 17.1l1.8 1.8M18.9 5.1l-1.8 1.8M6.9 17.1l-1.8 1.8" />
+    </svg>
+  );
+}
+
+export function MoonIcon({ size }: P) {
+  return (
+    <svg {...base(size)}>
+      <path d="M20 13.5A8 8 0 1 1 10.5 4a6.4 6.4 0 0 0 9.5 9.5z" />
+    </svg>
+  );
+}
+
 /** Étincelle de marque (fallback si le logo PNG est absent). */
 export function SparkIcon({ size = 30 }: P) {
   return (

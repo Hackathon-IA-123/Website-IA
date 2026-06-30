@@ -7,12 +7,14 @@ import DotField from "./DotField";
 import Home from "./Home";
 import { PenIcon } from "./icons";
 import Rail from "./Rail";
+import { useTheme } from "./ThemeProvider";
 
 export default function Chat() {
   const [messages, setMessages] = useState<Message[]>([]);
   const [loading, setLoading] = useState(false);
   const [title, setTitle] = useState("Nouveau fil");
   const [model, setModel] = useState<ModelId>("medical");
+  const { theme } = useTheme();
 
   const isEmpty = messages.length === 0;
 
@@ -98,13 +100,13 @@ export default function Chat() {
 
   return (
     <div className="relative flex h-screen w-screen overflow-hidden">
-      <DotField focus={focus} />
+      <DotField focus={focus} theme={theme} />
 
       {/* Édition (haut droite) - accueil uniquement */}
       {isEmpty && (
         <button
           aria-label="Composer"
-          className="absolute right-[30px] top-[30px] z-20 flex h-10 w-10 items-center justify-center rounded-full border-[1.4px] border-dashed border-white/[0.28] text-[#cfcfcf] hover:text-white"
+          className="absolute right-[30px] top-[30px] z-20 flex h-10 w-10 items-center justify-center rounded-full border-[1.4px] border-dashed border-(--border-dashed) text-(--ink) hover:text-(--hover-text)"
         >
           <PenIcon size={20} />
         </button>
