@@ -1,0 +1,28 @@
+services:
+  website-ia:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: website-ia
+    restart: unless-stopped
+    ports:
+      - "3000:3000"
+    environment:
+      NODE_ENV: production
+      OLLAMA_BASE_URL: http://ollama:11434
+      OLLAMA_MODEL: phi35-finance
+      LLM_BACKEND: ollama
+    depends_on:
+      - ollama
+
+  ollama:
+    image: ollama/ollama:latest
+    container_name: ollama
+    restart: unless-stopped
+    ports:
+      - "11434:11434"
+    volumes:
+      - ollama:/root/.ollama
+
+volumes:
+  ollama:

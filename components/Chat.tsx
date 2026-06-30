@@ -5,9 +5,8 @@ import { useState } from "react";
 import ChatView from "./ChatView";
 import DotField from "./DotField";
 import Home from "./Home";
-import { TemporaryChatIcon } from "./icons";
 import Rail from "./Rail";
-import { useTheme } from "./ThemeProvider";
+import { PenIcon } from "./icons";
 
 export default function Chat() {
   const [messages, setMessages] = useState<Message[]>([]);
@@ -15,9 +14,18 @@ export default function Chat() {
   const [title, setTitle] = useState("Nouveau fil");
   const [model, setModel] = useState<ModelId>("medical");
   const [temporary, setTemporary] = useState(false);
-  const { theme } = useTheme();
 
   const isEmpty = messages.length === 0;
+
+
+  function makeId() {
+  if (typeof crypto !== "undefined" && "randomUUID" in crypto) {
+    return crypto.randomUUID();
+  }
+
+  return `${Date.now()}-${Math.random().toString(36).slice(2)}`;
+}
+
 
   function newChat() {
     setMessages([]);
@@ -44,7 +52,7 @@ export default function Chat() {
       });
       if (!res.body) throw new Error("Pas de réponse");
 
-      const assistantId = crypto.randomUUID();
+      const assistantId = makeId();
       setMessages((prev) => [
         ...prev,
         { id: assistantId, role: "assistant", content: "" },
@@ -66,12 +74,13 @@ export default function Chat() {
       setMessages((prev) => [
         ...prev,
         {
-          id: crypto.randomUUID(),
+          id: makeId(),
           role: "assistant",
           content: "Une erreur est survenue. Réessaie.",
         },
       ]);
     } finally {
+      console.log("FETCH /api/chat");	    
       setLoading(false);
     }
   }
@@ -79,7 +88,7 @@ export default function Chat() {
   async function sendMessage(text: string) {
     if (loading) return;
     const userMessage: Message = {
-      id: crypto.randomUUID(),
+      id: makeId(),
       role: "user",
       content: text,
     };
@@ -88,6 +97,7 @@ export default function Chat() {
     if (messages.length === 0) {
       setTitle(text.length > 38 ? text.slice(0, 38) + "…" : text);
     }
+    console.log("SEND MESSAGE:", text);
     await streamReply(history);
   }
 
@@ -114,14 +124,16 @@ export default function Chat() {
       {/* Chat temporaire (haut droite) - accueil uniquement */}
       {isEmpty && (
         <button
-          type="button"
           onClick={toggleTemporary}
-          aria-label={temporary ? "Désactiver le chat temporaire" : "Activer le chat temporaire"}
+          aria-label="Chat temporaire"
           aria-pressed={temporary}
-          className={`absolute right-[30px] top-[30px] z-20 flex h-10 w-10 items-center justify-center rounded-full border-[1.4px] border-dashed text-(--ink) hover:text-(--hover-text) ${
+          title={
+            temporary ? "Désactiver le chat temporaire" : "Chat temporaire"
+          }
+          className={`absolute right-[30px] top-[30px] z-20 flex h-10 w-10 items-center justify-center rounded-full transition-colors ${
             temporary
-              ? "border-accent bg-accent/10 text-accent"
-              : "border-(--border-dashed)"
+              ? "bg-accent/15 text-accent ring-1 ring-accent/40"
+              : "text-[#cfcfcf] hover:bg-white/[0.06] hover:text-white"
           }`}
         >
           <TemporaryChatIcon size={20} />
@@ -136,7 +148,6 @@ export default function Chat() {
             onSend={sendMessage}
             model={model}
             onModelChange={setModel}
-            temporary={temporary}
           />
         ) : (
           <ChatView
