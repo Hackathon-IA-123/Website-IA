@@ -1,5 +1,6 @@
 "use client";
 
+import { useEffect, useState } from "react";
 import type { ModelId } from "@/app/types";
 import Composer from "./Composer";
 import { TemporaryChatIcon } from "./icons";
@@ -22,6 +23,7 @@ interface HomeProps {
   model: ModelId;
   onModelChange: (model: ModelId) => void;
   temporary: boolean;
+  name: string | null;
 }
 
 export default function Home({
@@ -29,7 +31,17 @@ export default function Home({
   model,
   onModelChange,
   temporary,
+  name,
 }: HomeProps) {
+  const firstName = name?.trim().split(/\s+/)[0] ?? "";
+
+  // Salutation selon l'heure (calculée côté client pour éviter un décalage SSR).
+  const [greeting, setGreeting] = useState("Bonjour");
+  useEffect(() => {
+    const h = new Date().getHours();
+    setGreeting(h >= 18 || h < 5 ? "Bonsoir" : "Bonjour");
+  }, []);
+
   return (
     <div className="flex h-full flex-col items-center justify-center px-6">
       {temporary && (
@@ -46,7 +58,9 @@ export default function Home({
           </>
         ) : (
           <>
-            Bonsoir Thomas, on <span className="text-accent">explore</span> ?
+            {greeting}
+            {firstName ? ` ${firstName}` : ""}, on{" "}
+            <span className="text-accent">explore</span> ?
           </>
         )}
       </h1>

@@ -194,8 +194,14 @@ export default function Rail({
             onClick={() => signOut({ redirectTo: "/" })}
             aria-label="Se déconnecter"
             title="Se déconnecter"
+            className="group relative flex h-[34px] w-[34px] items-center justify-center self-center"
           >
-            <Avatar user={user} initial={initial} />
+            <span className="transition-opacity duration-150 group-hover:opacity-0">
+              <Avatar user={user} initial={initial} />
+            </span>
+            <span className="absolute inset-0 flex items-center justify-center rounded-full bg-(--surface) text-(--ink) opacity-0 transition-opacity duration-150 group-hover:opacity-100">
+              <LogoutIcon />
+            </span>
           </button>
         )}
       </div>

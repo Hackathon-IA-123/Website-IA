@@ -257,6 +257,7 @@ export default function Chat({
             model={model}
             onModelChange={setModel}
             temporary={temporary}
+            name={user.name}
           />
         ) : (
           <ChatView
