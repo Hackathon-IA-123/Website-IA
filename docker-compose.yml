@@ -1,19 +1,20 @@
 services:
-  website-ia:
-    build:
-      context: .
-      dockerfile: Dockerfile
-    container_name: website-ia
+  db:
+    image: postgres:16-alpine
     restart: unless-stopped
-    ports:
-      - "3000:3000"
     environment:
-      NODE_ENV: production
-      OLLAMA_BASE_URL: http://ollama:11434
-      OLLAMA_MODEL: phi35-finance
-      LLM_BACKEND: ollama
-    depends_on:
-      - ollama
+      POSTGRES_USER: jean
+      POSTGRES_PASSWORD: jean
+      POSTGRES_DB: jean
+    ports:
+      - "5432:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U jean -d jean"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
 
   ollama:
     image: ollama/ollama:latest
@@ -24,5 +25,26 @@ services:
     volumes:
       - ollama:/root/.ollama
 
+  app:
+    build: .
+    restart: unless-stopped
+    depends_on:
+      db:
+        condition: service_healthy
+      ollama:
+        condition: service_started
+    environment:
+      DATABASE_URL: postgresql://jean:jean@db:5432/jean
+      AUTH_SECRET: ${AUTH_SECRET}
+      AUTH_GOOGLE_ID: ${AUTH_GOOGLE_ID}
+      AUTH_GOOGLE_SECRET: ${AUTH_GOOGLE_SECRET}
+      AUTH_URL: ${AUTH_URL:-http://localhost:3000}
+      AUTH_TRUST_HOST: "true"
+      OLLAMA_URL: ${OLLAMA_URL:-http://ollama:11434}
+      OLLAMA_MODEL: ${OLLAMA_MODEL:-qwen2:0.5b}
+    ports:
+      - "3000:3000"
+
 volumes:
+  pgdata:
   ollama:

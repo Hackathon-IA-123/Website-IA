@@ -1,6 +1,9 @@
 "use client";
 
 import { useState } from "react";
+import Image from "next/image";
+import { signOut } from "next-auth/react";
+import type { ConversationSummary, SessionUser } from "@/app/types";
 import Logo from "./Logo";
 import { useTheme } from "./ThemeProvider";
 import {
@@ -16,13 +19,24 @@ import {
 } from "./icons";
 
 interface RailProps {
+  user: SessionUser;
+  conversations: ConversationSummary[];
+  activeId: string | null;
   onNewChat: () => void;
+  onSelect: (id: string) => void;
 }
 
-export default function Rail({ onNewChat }: RailProps) {
+export default function Rail({
+  user,
+  conversations,
+  activeId,
+  onNewChat,
+  onSelect,
+}: RailProps) {
   const [expanded, setExpanded] = useState(false);
   const { theme, toggleTheme } = useTheme();
   const isDark = theme === "dark";
+  const initial = (user.name ?? user.email ?? "?").trim().charAt(0).toUpperCase();
 
   return (
     <nav
@@ -98,17 +112,54 @@ export default function Rail({ onNewChat }: RailProps) {
         </NavItem>
       </div>
 
-      <div className="flex-1" />
+      {/* Historique des conversations */}
+      {expanded ? (
+        <div className="mt-5 flex min-h-0 flex-1 flex-col">
+          <p className="px-3 pb-2 text-[12px] font-medium uppercase tracking-wide text-(--ink-dim)">
+            Récents
+          </p>
+          <div className="flex-1 overflow-y-auto">
+            {conversations.length === 0 ? (
+              <p className="px-3 py-2 text-[13px] text-(--ink-dim)">
+                Aucune conversation
+              </p>
+            ) : (
+              <ul className="flex flex-col gap-0.5">
+                {conversations.map((c) => (
+                  <li key={c.id}>
+                    <button
+                      type="button"
+                      onClick={() => onSelect(c.id)}
+                      title={c.title}
+                      className={`w-full truncate rounded-full px-3 py-2 text-left text-[14px] transition-colors ${
+                        c.id === activeId
+                          ? "bg-(--surface) text-(--ink-strong)"
+                          : "text-(--ink) hover:bg-(--surface-soft)"
+                      }`}
+                    >
+                      {c.title}
+                    </button>
+                  </li>
+                ))}
+              </ul>
+            )}
+          </div>
+        </div>
+      ) : (
+        <>
+          <NavItem expanded={false} label="Historique" dim>
+            <HistoryIcon />
+          </NavItem>
+          <div className="flex-1" />
+        </>
+      )}
 
-      {/* Bas : historique, paramètres, profil */}
+      {/* Bas : thème, profil, déconnexion */}
       <div
         className={`flex flex-col ${
           expanded ? "gap-1" : "items-center gap-[18px]"
         }`}
       >
-        <NavItem expanded={expanded} label="Historique" dim>
-          <HistoryIcon />
-        </NavItem>
         <NavItem
           expanded={expanded}
           label={isDark ? "Mode clair" : "Mode sombre"}
@@ -117,22 +168,56 @@ export default function Rail({ onNewChat }: RailProps) {
         >
           {isDark ? <SunIcon /> : <MoonIcon />}
         </NavItem>
-        <div
-          className={`flex items-center ${
-            expanded ? "mt-1 gap-3 px-3 py-1" : "flex-col"
-          }`}
-        >
-          <div className="flex h-[34px] w-[34px] shrink-0 items-center justify-center rounded-full bg-accent text-[14px] font-semibold text-accent-ink">
-            T
+
+        {expanded ? (
+          <div className="mt-1 flex items-center justify-between gap-2 px-2 py-1">
+            <div className="flex min-w-0 items-center gap-2.5">
+              <Avatar user={user} initial={initial} />
+              <span className="truncate text-[14px] text-(--ink)">
+                {user.name ?? user.email ?? "Compte"}
+              </span>
+            </div>
+            <button
+              type="button"
+              onClick={() => signOut({ redirectTo: "/" })}
+              aria-label="Se déconnecter"
+              title="Se déconnecter"
+              className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full text-(--ink-dim) transition-colors hover:bg-(--surface) hover:text-(--hover-text)"
+            >
+              <LogoutIcon />
+            </button>
           </div>
-          {expanded && (
-            <span className="whitespace-nowrap text-[14px] text-(--ink)">
-              Thomas
-            </span>
-          )}
-        </div>
+        ) : (
+          <button
+            type="button"
+            onClick={() => signOut({ redirectTo: "/" })}
+            aria-label="Se déconnecter"
+            title="Se déconnecter"
+          >
+            <Avatar user={user} initial={initial} />
+          </button>
+        )}
       </div>
     </nav>
+  );
+}
+
+function Avatar({ user, initial }: { user: SessionUser; initial: string }) {
+  if (user.image) {
+    return (
+      <Image
+        src={user.image}
+        alt={user.name ?? "Profil"}
+        width={34}
+        height={34}
+        className="h-[34px] w-[34px] shrink-0 rounded-full object-cover"
+      />
+    );
+  }
+  return (
+    <div className="flex h-[34px] w-[34px] shrink-0 items-center justify-center rounded-full bg-accent text-[14px] font-semibold text-accent-ink">
+      {initial}
+    </div>
   );
 }
 
@@ -167,5 +252,24 @@ function NavItem({
       </span>
       {expanded && <span className="whitespace-nowrap text-[14px]">{label}</span>}
     </button>
+  );
+}
+
+function LogoutIcon() {
+  return (
+    <svg
+      width="18"
+      height="18"
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth={1.7}
+      strokeLinecap="round"
+      strokeLinejoin="round"
+    >
+      <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" />
+      <path d="M16 17l5-5-5-5" />
+      <path d="M21 12H9" />
+    </svg>
   );
 }
