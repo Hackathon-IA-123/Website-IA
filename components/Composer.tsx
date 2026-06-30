@@ -1,8 +1,11 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
-import { PlusIcon, MicIcon, ChevronDownIcon, ArrowUpIcon } from "./icons";
 import { MODELS, type ModelId } from "@/app/types";
+import { useEffect, useRef, useState } from "react";
+import SpeechRecognition, {
+  useSpeechRecognition,
+} from "react-speech-recognition";
+import { ArrowUpIcon, ChevronDownIcon, MicIcon, PlusIcon } from "./icons";
 
 interface ComposerProps {
   onSend: (text: string) => void;
@@ -26,11 +29,37 @@ export default function Composer({
   const ref = useRef<HTMLTextAreaElement>(null);
   const hasText = value.trim().length > 0;
 
+  // --- Dictée vocale (Web Speech API via react-speech-recognition) ---
+  const {
+    transcript,
+    listening,
+    resetTranscript,
+    browserSupportsSpeechRecognition,
+  } = useSpeechRecognition();
+  const dictationBase = useRef("");
+
+  // Pendant l'écoute, on reflète la transcription dans le champ.
+  useEffect(() => {
+    if (listening) setValue(dictationBase.current + transcript);
+  }, [transcript, listening]);
+
+  function toggleDictation() {
+    if (listening) {
+      SpeechRecognition.stopListening();
+      return;
+    }
+    dictationBase.current = value.trim() ? value.trim() + " " : "";
+    resetTranscript();
+    SpeechRecognition.startListening({ language: "fr-FR", continuous: true });
+  }
+
   function submit() {
     const text = value.trim();
     if (!text || disabled) return;
+    if (listening) SpeechRecognition.stopListening();
     onSend(text);
     setValue("");
+    resetTranscript();
     if (ref.current) ref.current.style.height = "auto";
   }
 
@@ -66,19 +95,13 @@ export default function Composer({
 
   const minH = variant === "home" ? "min-h-[66px]" : "min-h-[62px]";
   const bg =
-    variant === "home"
-      ? "bg-(--composer-bg-home)"
-      : "bg-(--composer-bg-chat)";
+    variant === "home" ? "bg-(--composer-bg-home)" : "bg-(--composer-bg-chat)";
   const textSize = variant === "home" ? "text-[19px]" : "text-[18px]";
 
   return (
     <div
       className={`animate-ui-soft-float animate-ui-soft-glow flex w-full items-center gap-[14px] rounded-[33px] ${bg} ${minH} border border-(--border-soft) py-2 pl-[22px] pr-[14px] backdrop-blur-[14px]`}
     >
-      <span className="text-(--ink)">
-        <PlusIcon size={26} />
-      </span>
-
       <textarea
         ref={ref}
         value={value}
@@ -135,8 +158,19 @@ export default function Composer({
         )}
       </div>
 
-      {hasText ? (
+      {listening ? (
         <button
+          type="button"
+          onClick={toggleDictation}
+          aria-label="Arrêter la dictée"
+          title="Arrêter la dictée"
+          className="flex h-[42px] w-[42px] shrink-0 animate-pulse items-center justify-center rounded-full bg-accent text-accent-ink ring-2 ring-accent/40"
+        >
+          <MicIcon size={22} />
+        </button>
+      ) : hasText ? (
+        <button
+          type="button"
           onClick={submit}
           disabled={disabled}
           aria-label="Envoyer"
@@ -146,8 +180,16 @@ export default function Composer({
         </button>
       ) : (
         <button
+          type="button"
+          onClick={toggleDictation}
+          disabled={!browserSupportsSpeechRecognition}
           aria-label="Dictée vocale"
-          className="flex h-[42px] w-[42px] shrink-0 items-center justify-center rounded-full text-(--ink)"
+          title={
+            browserSupportsSpeechRecognition
+              ? "Dictée vocale"
+              : "Dictée non supportée par ce navigateur"
+          }
+          className="flex h-[42px] w-[42px] shrink-0 items-center justify-center rounded-full text-(--ink) transition-colors hover:bg-(--surface-soft) disabled:opacity-40"
         >
           <MicIcon size={22} />
         </button>

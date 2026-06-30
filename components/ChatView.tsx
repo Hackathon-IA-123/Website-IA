@@ -89,20 +89,35 @@ export default function ChatView({
     <div className="relative flex h-full flex-col">
       {/* Barre supérieure */}
       <div className="z-10 flex h-[72px] shrink-0 items-center justify-between bg-linear-to-b from-(--top-fade) to-transparent px-[30px]">
-        <div className="flex items-center gap-2 text-[20px] font-medium text-(--ink-strong)">
-          {title}
-          <span className="text-(--ink-dim)">
-            <ChevronDownIcon size={16} />
-          </span>
+        <div className="flex items-center gap-3">
+          <div className="flex items-center gap-2 text-[20px] font-medium text-(--ink-strong)">
+            {temporary ? "Chat temporaire" : title}
+          </div>
+          {temporary && (
+            <span className="flex items-center gap-1.5 rounded-full border border-accent/30 bg-accent/10 px-2.5 py-1 text-[12px] font-medium text-accent">
+              <TemporaryChatIcon size={14} />
+              Temporaire
+            </span>
+          )}
         </div>
-        <div className="flex items-center gap-5 text-(--ink-dim)">
-          <button aria-label="Partager" className="hover:text-(--hover-text)">
-            <ShareIcon />
-          </button>
-          <button aria-label="Plus" className="hover:text-(--hover-text)">
-            <DotsIcon />
-          </button>
-        </div>
+        <button
+          type="button"
+          onClick={onToggleTemporary}
+          aria-label={
+            temporary
+              ? "Désactiver le chat temporaire"
+              : "Activer le chat temporaire"
+          }
+          aria-pressed={temporary}
+          title={temporary ? "Désactiver le chat temporaire" : "Chat temporaire"}
+          className={`flex h-9 w-9 items-center justify-center rounded-full transition-colors ${
+            temporary
+              ? "bg-accent/15 text-accent ring-1 ring-accent/40"
+              : "text-(--ink-dim) hover:bg-(--surface) hover:text-(--hover-text)"
+          }`}
+        >
+          <TemporaryChatIcon size={19} />
+        </button>
       </div>
 
       {/* Fil de conversation */}

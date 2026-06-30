@@ -1,21 +1,21 @@
 "use client";
 
-import { useState } from "react";
-import Image from "next/image";
-import { signOut } from "next-auth/react";
 import type { ConversationSummary, SessionUser } from "@/app/types";
+import { signOut } from "next-auth/react";
+import Image from "next/image";
+import { useState } from "react";
 import Logo from "./Logo";
 import { useTheme } from "./ThemeProvider";
 import {
-  PenIcon,
-  SearchIcon,
-  ImageIcon,
   BagIcon,
   GridIcon,
   HistoryIcon,
-  PanelLeftIcon,
-  SunIcon,
+  ImageIcon,
   MoonIcon,
+  PanelLeftIcon,
+  PenIcon,
+  SearchIcon,
+  SunIcon,
 } from "./icons";
 
 interface RailProps {
@@ -24,6 +24,7 @@ interface RailProps {
   activeId: string | null;
   onNewChat: () => void;
   onSelect: (id: string) => void;
+  onOpenSearch: () => void;
 }
 
 export default function Rail({
@@ -32,11 +33,15 @@ export default function Rail({
   activeId,
   onNewChat,
   onSelect,
+  onOpenSearch,
 }: RailProps) {
   const [expanded, setExpanded] = useState(false);
   const { theme, toggleTheme } = useTheme();
   const isDark = theme === "dark";
-  const initial = (user.name ?? user.email ?? "?").trim().charAt(0).toUpperCase();
+  const initial = (user.name ?? user.email ?? "?")
+    .trim()
+    .charAt(0)
+    .toUpperCase();
 
   return (
     <nav
@@ -98,17 +103,8 @@ export default function Rail({
           expanded ? "gap-1" : "items-center gap-[18px]"
         }`}
       >
-        <NavItem expanded={expanded} label="Rechercher">
+        <NavItem expanded={expanded} label="Rechercher" onClick={onOpenSearch}>
           <SearchIcon />
-        </NavItem>
-        <NavItem expanded={expanded} label="Images">
-          <ImageIcon />
-        </NavItem>
-        <NavItem expanded={expanded} label="Espace">
-          <BagIcon />
-        </NavItem>
-        <NavItem expanded={expanded} label="Applications">
-          <GridIcon />
         </NavItem>
       </div>
 
@@ -147,7 +143,12 @@ export default function Rail({
         </div>
       ) : (
         <>
-          <NavItem expanded={false} label="Historique" dim>
+          <NavItem
+            expanded={false}
+            label="Historique"
+            dim
+            onClick={() => setExpanded(true)}
+          >
             <HistoryIcon />
           </NavItem>
           <div className="flex-1" />
@@ -250,7 +251,9 @@ function NavItem({
       <span className="flex shrink-0 items-center justify-center">
         {children}
       </span>
-      {expanded && <span className="whitespace-nowrap text-[14px]">{label}</span>}
+      {expanded && (
+        <span className="whitespace-nowrap text-[14px]">{label}</span>
+      )}
     </button>
   );
 }
