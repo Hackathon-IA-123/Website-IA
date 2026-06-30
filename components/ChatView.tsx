@@ -1,17 +1,17 @@
 "use client";
 
-import { useEffect, useRef } from "react";
-import type { Message } from "@/app/types";
+import type { Message, ModelId } from "@/app/types";
+import { useEffect, useRef, useState } from "react";
 import Composer from "./Composer";
 import Logo from "./Logo";
 import {
   ChevronDownIcon,
-  ShareIcon,
-  DotsIcon,
   CopyIcon,
-  ThumbUpIcon,
-  ThumbDownIcon,
+  DotsIcon,
   RegenIcon,
+  ShareIcon,
+  ThumbDownIcon,
+  ThumbUpIcon,
 } from "./icons";
 
 interface ChatViewProps {
@@ -19,21 +19,66 @@ interface ChatViewProps {
   messages: Message[];
   loading: boolean;
   onSend: (text: string) => void;
+  onRegenerate: (assistantId: string) => void;
+  model: ModelId;
+  onModelChange: (model: ModelId) => void;
 }
+
+type Feedback = "up" | "down";
 
 export default function ChatView({
   title,
   messages,
   loading,
   onSend,
+  onRegenerate,
+  model,
+  onModelChange,
 }: ChatViewProps) {
   const bottomRef = useRef<HTMLDivElement>(null);
+  const [feedback, setFeedback] = useState<Record<string, Feedback>>({});
+  const [copiedId, setCopiedId] = useState<string | null>(null);
 
   useEffect(() => {
     bottomRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages, loading]);
 
   const waiting = loading && messages[messages.length - 1]?.role === "user";
+
+  async function copy(m: Message) {
+    let ok = false;
+    try {
+      await navigator.clipboard.writeText(m.content);
+      ok = true;
+    } catch {
+      // Fallback (presse-papiers async indisponible ou document non focalisé).
+      try {
+        const ta = document.createElement("textarea");
+        ta.value = m.content;
+        ta.style.position = "fixed";
+        ta.style.opacity = "0";
+        document.body.appendChild(ta);
+        ta.select();
+        ok = document.execCommand("copy");
+        document.body.removeChild(ta);
+      } catch {
+        ok = false;
+      }
+    }
+    if (ok) {
+      setCopiedId(m.id);
+      setTimeout(() => setCopiedId((id) => (id === m.id ? null : id)), 1500);
+    }
+  }
+
+  function vote(id: string, value: Feedback) {
+    setFeedback((prev) => {
+      const next = { ...prev };
+      if (next[id] === value) delete next[id];
+      else next[id] = value;
+      return next;
+    });
+  }
 
   return (
     <div className="relative flex h-full flex-col">
@@ -72,31 +117,40 @@ export default function ChatView({
                 </span>
                 <div className="flex-1 text-[17px] leading-[1.65] text-[#e6e6e6]">
                   <div className="whitespace-pre-wrap">{m.content}</div>
-                  {!loading && (
+                  {!loading && m.content && (
                     <div className="mt-[18px] flex gap-[18px] text-[#8a8a8a]">
-                      <button className="hover:text-white" aria-label="Copier">
-                        <CopyIcon />
-                      </button>
-                      <button className="hover:text-white" aria-label="J'aime">
+                      <ActionButton
+                        label={copiedId === m.id ? "Copié" : "Copier"}
+                        active={copiedId === m.id}
+                        onClick={() => copy(m)}
+                      >
+                        {copiedId === m.id ? <CheckIcon /> : <CopyIcon />}
+                      </ActionButton>
+                      <ActionButton
+                        label="J'aime"
+                        active={feedback[m.id] === "up"}
+                        onClick={() => vote(m.id, "up")}
+                      >
                         <ThumbUpIcon />
-                      </button>
-                      <button
-                        className="hover:text-white"
-                        aria-label="Je n'aime pas"
+                      </ActionButton>
+                      <ActionButton
+                        label="Je n'aime pas"
+                        active={feedback[m.id] === "down"}
+                        onClick={() => vote(m.id, "down")}
                       >
                         <ThumbDownIcon />
-                      </button>
-                      <button
-                        className="hover:text-white"
-                        aria-label="Régénérer"
+                      </ActionButton>
+                      <ActionButton
+                        label="Régénérer"
+                        onClick={() => onRegenerate(m.id)}
                       >
                         <RegenIcon />
-                      </button>
+                      </ActionButton>
                     </div>
                   )}
                 </div>
               </div>
-            )
+            ),
           )}
 
           {waiting && (
@@ -124,9 +178,54 @@ export default function ChatView({
             disabled={loading}
             variant="chat"
             placeholder="Répondre à Jean"
+            model={model}
+            onModelChange={onModelChange}
           />
         </div>
       </div>
     </div>
+  );
+}
+
+function ActionButton({
+  children,
+  label,
+  active,
+  onClick,
+}: {
+  children: React.ReactNode;
+  label: string;
+  active?: boolean;
+  onClick: () => void;
+}) {
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      aria-label={label}
+      title={label}
+      className={`transition-colors ${
+        active ? "text-accent" : "hover:text-white"
+      }`}
+    >
+      {children}
+    </button>
+  );
+}
+
+function CheckIcon() {
+  return (
+    <svg
+      width="19"
+      height="19"
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth={1.9}
+      strokeLinecap="round"
+      strokeLinejoin="round"
+    >
+      <path d="M5 12l5 5 9-10" />
+    </svg>
   );
 }

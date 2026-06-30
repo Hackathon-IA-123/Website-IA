@@ -1,6 +1,7 @@
 "use client";
 
 import Composer from "./Composer";
+import type { ModelId } from "@/app/types";
 
 const SUGGESTIONS = [
   "✦ Résumer un document",
@@ -10,9 +11,11 @@ const SUGGESTIONS = [
 
 interface HomeProps {
   onSend: (text: string) => void;
+  model: ModelId;
+  onModelChange: (model: ModelId) => void;
 }
 
-export default function Home({ onSend }: HomeProps) {
+export default function Home({ onSend, model, onModelChange }: HomeProps) {
   return (
     <div className="flex h-full flex-col items-center justify-center px-6">
       <h1 className="text-center text-[clamp(34px,5vw,56px)] font-light leading-[1.1] tracking-[-0.015em] text-[#f1f1f1]">
@@ -20,7 +23,13 @@ export default function Home({ onSend }: HomeProps) {
       </h1>
 
       <div className="mt-[46px] w-full max-w-[860px]">
-        <Composer onSend={onSend} variant="home" placeholder="Demander à Jean" />
+        <Composer
+          onSend={onSend}
+          variant="home"
+          placeholder="Demander à Jean"
+          model={model}
+          onModelChange={onModelChange}
+        />
       </div>
 
       <div className="mt-[30px] flex flex-wrap justify-center gap-3">
