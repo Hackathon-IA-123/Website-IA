@@ -13,14 +13,12 @@ interface HomeProps {
   onSend: (text: string) => void;
   model: ModelId;
   onModelChange: (model: ModelId) => void;
-  temporary: boolean;
 }
 
 export default function Home({
   onSend,
   model,
   onModelChange,
-  temporary,
 }: HomeProps) {
   return (
     <div className="flex h-full flex-col items-center justify-center px-6">

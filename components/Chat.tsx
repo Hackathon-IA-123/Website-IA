@@ -6,7 +6,8 @@ import type {
   ModelId,
   SessionUser,
 } from "@/app/types";
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
+import { useRouter } from "next/navigation";
 import ChatView from "./ChatView";
 import DotField from "./DotField";
 import Home from "./Home";
@@ -17,9 +18,16 @@ import { TemporaryChatIcon } from "./icons";
 interface ChatProps {
   user: SessionUser;
   initialConversations: ConversationSummary[];
+  initialConversationId?: string | null;
 }
 
-export default function Chat({ user, initialConversations }: ChatProps) {
+export default function Chat({
+  user,
+  initialConversations,
+  initialConversationId = null,
+}: ChatProps) {
+  const router = useRouter();
+  const didLoadFromUrl = useRef(false);
   const [messages, setMessages] = useState<Message[]>([]);
   const [loading, setLoading] = useState(false);
   const [title, setTitle] = useState("Nouveau fil");
@@ -32,6 +40,12 @@ export default function Chat({ user, initialConversations }: ChatProps) {
 
   const isEmpty = messages.length === 0;
 
+  function syncConversationUrl(id: string | null) {
+    const url = id
+      ? `/?conversation_id=${encodeURIComponent(id)}`
+      : "/";
+    router.replace(url, { scroll: false });
+  }
 
   function makeId() {
   if (typeof crypto !== "undefined" && "randomUUID" in crypto) {
@@ -48,12 +62,14 @@ export default function Chat({ user, initialConversations }: ChatProps) {
     setTitle("Nouveau fil");
     setTemporary(false);
     setConversationId(null);
+    syncConversationUrl(null);
   }
 
   function toggleTemporary() {
     setMessages([]);
     setLoading(false);
     setConversationId(null);
+    syncConversationUrl(null);
     setTemporary((v) => !v);
   }
 
@@ -80,10 +96,19 @@ export default function Chat({ user, initialConversations }: ChatProps) {
       setTitle(conversation.title);
       setModel(conversation.model as ModelId);
       setTemporary(false);
+      syncConversationUrl(conversation.id);
     } catch {
       /* ignore */
     }
   }
+
+  // Ouvre la conversation passée dans l'URL au chargement (ex. lien partagé / refresh).
+  useEffect(() => {
+    if (!initialConversationId || didLoadFromUrl.current) return;
+    didLoadFromUrl.current = true;
+    loadConversation(initialConversationId);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [initialConversationId]);
 
   // Envoie l'historique au backend (Ollama) et streame la réponse.
   async function streamReply(history: Message[], regenerate = false) {
@@ -103,7 +128,10 @@ export default function Chat({ user, initialConversations }: ChatProps) {
       if (!res.ok || !res.body) throw new Error("Pas de réponse");
 
       const cid = res.headers.get("X-Conversation-Id");
-      if (cid && cid !== "temp") setConversationId(cid);
+      if (cid && cid !== "temp") {
+        setConversationId(cid);
+        syncConversationUrl(cid);
+      }
 
       const assistantId = crypto.randomUUID();
       setMessages((prev) => [
